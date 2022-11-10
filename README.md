@@ -5,7 +5,7 @@ POPDIP: a POsitive-variables Primal-Dual Interior Point method
 This algorithm, implemented in Matlab/Octave, solves the positivity-constrained,
 n-dimensional problem
 
-$$\begin{matrix} \min & f(x) \\ \text{subject to} & x \ge 0\end{matrix}$$
+$$\begin{matrix} \min & f(x) \\\\ \text{subject to} & x \ge 0 \end{matrix}$$
 
 This project is just for fun, and not research.  That is, nothing here is an
 original contribution beyond well-known algorithms.  Specifically, I regard
