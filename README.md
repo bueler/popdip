@@ -30,5 +30,5 @@ Read `doc/doc.pdf`.
 ## history
 
 The first version of this project was in my Math 661 Optimization course in
-Fall 2018.  See [bueler.github.io/M661F18/](https://bueler.github.io/M661F18/index.html)]
+Fall 2018.  See [bueler.github.io/M661F18/](https://bueler.github.io/M661F18/index.html)
 and look among the Matlab/Octave codes.
