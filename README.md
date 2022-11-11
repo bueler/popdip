@@ -1,6 +1,4 @@
-# popdip
-
-POPDIP: a POsitive-variables Primal-Dual Interior Point method
+# POPDIP: a POsitive-variables Primal-Dual Interior Point method
 
 This algorithm, implemented in Matlab/Octave, solves the positivity-constrained,
 n-dimensional problem
