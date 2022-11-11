@@ -25,7 +25,7 @@ The two functioning examples are in `small.m` and `obstacle.m`:
 
 ## documentation
 
-Read `doc/doc.pdf`.
+Read `doc/doc.pdf` after doing `make` in `doc/`.
 
 ## history
 
