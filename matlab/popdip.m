@@ -1,16 +1,17 @@
 function [xk,lamk,xklist,lamklist] = popdip(x0,f,tol,maxiters,theta,kappabar)
 % POPDIP  POsitive-variables Primal-Dual Interior Point method.  This is a
-% version of Algorithm 16.1 in section 16.7 of Griva, Nash, Sofer (2009).
+% version of Algorithm 16.1 in section 16.7 of Griva, Nash, Sofer (2009), but
+% specialized to
+%   min f(x)
+%   subject to x >= 0
 % Uses mu and kappa formulas in section 16.7.2.  It appears the convergence
 % of this algorithm it quadratic; it should be governed by Theorem 16.17.
 % This implementation does not use back-tracking; only the ratio test
 % for positivity, both primal and dual, adjusts the step size.  This
-% implemenation does not exploit any sparsity; the indefinite Newton step
+% implementation does not exploit any sparsity; the indefinite Newton step
 % equations are solved by O(n^3) Gauss elimination.
-%
-% Documented by: http://bueler.github.io/M661F18/popdip/doc.pdf
-%
-% Example:   See TESTPOPDIP and OBSTACLE.
+% See documentation doc.pdf in doc/.
+% Examples:   SMALL and OBSTACLE
 
 if nargin < 3,  tol = 1.0e-4;    end
 if nargin < 4,  maxiters = 200;  end
@@ -77,7 +78,7 @@ end % function
     function z = merit(x,lam,dfx)
     % MERIT implements a formula on page 642
     z = max(norm(dfx-lam),norm(lam.*x));
-    end % function
+    end
 
     function alpha = ratiotest(x,dx,kappa)
     % RATIOTEST implements a formula on page 642
@@ -87,5 +88,4 @@ end % function
             alpha = min(alpha, - kappa * x(j) / dx(j));
         end
     end
-    end % function
-
+    end

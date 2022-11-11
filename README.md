@@ -10,7 +10,7 @@ $$\begin{matrix} \min & f(x) \\\\ \text{subject to} & x \ge 0 \end{matrix}$$
 This project is just for fun, and not research.  That is, nothing here is an
 original contribution beyond well-known algorithms.  Specifically, I regard
 this algorithm as a special case of Algorithm 16.1 in section 16.7 of the
-textbook Griva, Nash, Sofer, "Linear and Nonlinear Optimization", 2nd ed., SIAM
+textbook Griva, Nash, Sofer, _Linear and Nonlinear Optimization_, 2nd ed., SIAM
 Press 2009.
 
 ## running the small example

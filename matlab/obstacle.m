@@ -1,5 +1,5 @@
 function obstacle(n,tol)
-% OBSTACLE  Uses POPDIP to minimize
+% OBSTACLE  Uses POPDIP to solve
 %     min   f(u)
 %     s.t.  u >= 0
 % for f(u) given in OBSTACLEFCN.

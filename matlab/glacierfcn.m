@@ -1,4 +1,5 @@
 function [f,df,Hf] = glacierfcn(u)
+% ** WORK IN PROGRESS **
 % GLACIERFCN  Evaluate objective function, gradient, and Hessian for glacier
 % viscous/climate energy function.  The continuum objective is a functional
 %          /L
@@ -37,7 +38,7 @@ for k = 1:n
             - 0.5 * (mclimate(xmidl) + mclimate(xmidr));
 end
 
-% gradient grad f(u)
+% Hessian Hf(u)
 Hf = zeros(n,n);
 C = 3.0 * mu / dx;
 for k = 1:n
@@ -69,5 +70,4 @@ end % function glacierfcn
         m = -3.0;
     end
     m = m / spera;
-    end % function mclimate
-
+    end

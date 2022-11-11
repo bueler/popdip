@@ -51,4 +51,3 @@ end
 
 ee = ones(n,1);
 Hf = (1/dx) * full(spdiags([-ee, 2*ee, -ee],[-1,0,1],n,n));
-
