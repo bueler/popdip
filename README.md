@@ -11,12 +11,14 @@ this algorithm as a special case of Algorithm 16.1 in section 16.7 of the
 textbook Griva, Nash, Sofer, _Linear and Nonlinear Optimization_, 2nd ed., SIAM
 Press 2009.
 
-## running the small example
+## running examples
 
-Go to the directory `matlab/`, and start Matlab or Octave.  The two examples
-are in `small.m` and `obstacle.m`.  The main algorithm is in `popdip.m`.
+Go to the directory `matlab/`, and start Matlab or Octave.  The main algorithm
+is in `popdip.m`.
 
-To test, run
+        >> help popdip
+
+The two functioning examples are in `small.m` and `obstacle.m`:
 
         >> small
         >> obstacle
