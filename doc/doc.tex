@@ -69,7 +69,7 @@ frame=lines,framerule=0.1mm,framesep=2mm,xleftmargin=4mm,fontsize=\footnotesize}
 \newcommand{\ema}{\emach}
 \newcommand{\emach}{\eps_{\!_{\text{m}}}}
 
-\title{POPDIP: \\ a POsitive-variables Primal-Dual Interior Point method}
+\title{POPDIP: a POsitive-variables \\ Primal-Dual Interior Point optimization method}
 \author{Ed Bueler}
 \date{\today}
 
@@ -77,9 +77,18 @@ frame=lines,framerule=0.1mm,framesep=2mm,xleftmargin=4mm,fontsize=\footnotesize}
 \maketitle
 
 \begin{abstract}
-The algorithm documented here is a version of a Newton-type primal-dual interior point algorithm in \cite{GrivaNashSofer2009}, namely Algorithm 16.1 in section 16.7.  The version here minimizes a smooth nonlinear function subject to the simple constraints that all the variables are nonnegative.  That is, it is a specialized algorithm for nonnegativity constraints; it is not suitable for general inequality constraints.
+The algorithm documented here is a modest modification of the Newton-type primal-dual interior point algorithm in \cite{GrivaNashSofer2009}, namely Algorithm 16.1 in section 16.7.  This version minimizes a smooth nonlinear function subject to the constraints that all the variables are nonnegative, plus linear equality constraints:
+\begin{equation}
+\begin{matrix}
+\text{minimize} \qquad   & f(x) \\
+\text{subject to} \qquad & A x = b \\
+                         & x \ge 0
+\end{matrix} \label{eq:abstractproblem}
+\end{equation}
 
-These short notes are not research as this algorithm is simply a special case of a well-known algorithm.  Furthermore ``POPDIP'' is just a name I made up; it is not in common use!  However, this class of algorithms is new to me so I am documenting it fully.
+The algorithm can be used as an interior-point method for linear programming in the case where $f(x)=c^\top x$.  However, this is a specialized algorithm for nonnegativity constraints $x\ge 0$, and it is not suitable for general inequality constraints of the form ``$g_i(x)\ge 0$.''
+
+These short notes are not research!  We consider a special case of a well-known algorithm.  Furthermore ``POPDIP'' is just a name I made up; it is not in common use. However, this class of algorithms is new to me so I am documenting it fully.
 \end{abstract}
 
 \thispagestyle{empty}
@@ -87,59 +96,77 @@ These short notes are not research as this algorithm is simply a special case of
 \bigskip
 \subsection*{Introduction}
 
-Consider a nonlinear optimization problem with nonnegativity (informally: positivity) constraints on the variables:
+Consider first a nonlinear optimization problem with only nonnegativity (informally: positivity) constraints on the variables:
 \begin{equation}
 \begin{matrix}
 \text{minimize} \qquad & f(x) \\
 \text{subject to} \qquad & x \ge 0
-\end{matrix} \label{minproblem}
+\end{matrix} \label{eq:posproblem}
 \end{equation}
-As usual, ``$x\ge 0$'' means that each entry of $x\in\RR^n$ is nonnegative.  The feasible set for \eqref{minproblem} is the convex and closed set $S = \{x\in \RR^n\,:\,x\ge 0\}$ with interior $S^\circ = \{x\in \RR^n\,:\,x > 0\}$.
+The next section will address the more general problem including linear equality constraints.
 
-Here $f:\RR^n \to\RR^n$ is a continuous and smooth function.  In fact this algorithm only assumes $f$ is defined and smooth on $S^\circ$, but in practice, so as to have a chance of good performance, $f$ should be well-behaved near the boundary of $S$.
+As usual, ``$x\ge 0$'' in \eqref{eq:posproblem} means that each entry of $x\in\RR^n$ is nonnegative.  The feasible set for \eqref{eq:posproblem} is the convex and closed set $S = \{x\in \RR^n\,:\,x\ge 0\}$ with interior $S^\circ = \{x\in \RR^n\,:\,x > 0\}$.  Here $f:S \to \RR$ is a continuous and smooth function, but for greater simplicity of the presentation we will assume that $f$ is defined on all of $\RR^n$.
 
-One can start the derivation by considering a logarithmic barrier function.  Let $\mu>0$.  If $x\in S^\circ$ then the following function is well-defined and finite:
+One can start the derivation by considering a logarithmic barrier function \cite[section 16.2]{GrivaNashSofer2009}.  Let $\mu>0$ be a (temporarily) fixed constant.  If $x\in S^\circ$ then the following function is well-defined:
 \begin{equation}
-\beta_\mu(x) = f(x) - \mu \sum_{i=1}^n \ln x_i \label{barrierfunction}
+\beta_\mu(x) = f(x) - \mu \sum_{i=1}^n \ln x_i \label{eq:posbarrierfunction}
 \end{equation}
-Let $\{e_1,\dots,e_n\}$ be the standard basis of $\RR^n$.  The first-order necessary condition for the unconstrained problem of minimizing $\beta_\mu$, namely $\grad \beta_\mu(x)=0$ for $x \in S^\circ$, is
+Let $\{e_1,\dots,e_n\}$ be the standard basis of $\RR^n$.  The first-order necessary condition for the \emph{unconstrained} problem of minimizing $\beta_\mu$, namely $\grad \beta_\mu(x)=0$ for $x \in S^\circ$, is
 \begin{equation}
-\grad f(x) - \mu \sum_{i=1}^n \frac{1}{x_i} e_i = 0 \label{firstorderbarrier}
+\grad f(x) - \mu \sum_{i=1}^n \frac{1}{x_i} e_i = 0 \label{eq:posfirstorderbarrier}
 \end{equation}
 
-Conditions \eqref{firstorderbarrier} can be reformulated by defining additional variables
+Conditions \eqref{eq:posfirstorderbarrier} can be reformulated by defining additional variables
     $$\lambda_i = \frac{\mu}{x_i}$$
-so that $\lambda\in\RR^n$.  Note that $\lambda>0$ if and only if $x>0$ because $\lambda_i x_i = \mu > 0$.  Then \eqref{firstorderbarrier}, plus feasibility for $x$, is precisely equivalent to the following nonlinear system of equations and inequalities:
+so that $\lambda\in\RR^n$.  Note that $\lambda>0$ if and only if $x>0$ because $\lambda_i x_i = \mu > 0$.  Then \eqref{eq:posfirstorderbarrier}, plus feasibility for $x$, is precisely equivalent to the following nonlinear system of equations and inequalities:
 \begin{align}
-x &\ge 0 \label{firstordersystem} \\
-\lambda &\ge 0 \notag \\
-\grad f(x) - \lambda &= 0 \notag \\
-\lambda_i x_i &= \mu, \qquad i=1,\dots,n \notag
+\grad f(x) - \lambda &= 0 \label{eq:posfirstordersystem} \\
+\lambda_i x_i &= \mu, \qquad i=1,\dots,n \notag \\
+x &\ge 0 \notag \\
+\lambda &\ge 0 \notag
 \end{align}
 
-The feasible set for $x$ and for $\lambda$ is the same, namely $S \subset \RR^n$.  Because of the last condition in \eqref{firstordersystem}, both $x$ and $\lambda$ are positive and thus in the interior $S^\circ$.  By contrast, for the general primal-dual interior point Algorithm 16.1 \cite[section 16.7]{GrivaNashSofer2009}, the feasible set for the primal variable $x$ is different from the dual feasible set for $\lambda$.  For example, generally the dimension is different.
+The feasible set for $x$ and for $\lambda$ is the same, namely $S \subset \RR^n$.  Because of the second condition in \eqref{eq:posfirstordersystem}, both $x$ and $\lambda$ are positive and thus in the interior $S^\circ$.  By contrast, for the general primal-dual interior point method, specifically Algorithm 16.1 in \cite[section 16.7]{GrivaNashSofer2009}, the feasible set for the primal variable $x$ is different from the dual feasible set for $\lambda$.
 
-The third condition in \eqref{firstordersystem} can be written using a Lagrangian function for \eqref{minproblem}, namely
+The first condition in \eqref{eq:posfirstordersystem} can be written using a Lagrangian function for \eqref{eq:posproblem}, namely
 \begin{equation}
-\mathcal{L}(x,\lambda) = f(x) - \sum_{i=1}^n \lambda_i x_i,  \label{Lagrangian}
+\mathcal{L}(x,\lambda) = f(x) - \sum_{i=1}^n \lambda_i x_i,  \label{eq:posLagrangian}
 \end{equation}
-in which case the third condition states that $\grad_x \mathcal{L}(x,\lambda)=0$.  In fact, the KKT conditions \cite[sections 14.4, 14.5]{GrivaNashSofer2009} are nearly the same as \eqref{firstordersystem} but with the last equation replaced by a condition of complementary slackness,
+in which case it states that $\grad_x \mathcal{L}(x,\lambda)=0$.  In fact, the KKT conditions \cite[sections 14.4, 14.5]{GrivaNashSofer2009} of \eqref{eq:posproblem} are nearly the same as \eqref{eq:posfirstordersystem} but with the second equation replaced by a condition of complementary slackness,
 \begin{align}
-x &\ge 0 \label{KKT} \\
-\lambda &\ge 0 \notag \\
-\grad f(x) - \lambda &= 0 \notag \\
-\lambda_i x_i &= 0, \qquad i=1,\dots,n \notag
+\grad f(x) - \lambda &= 0 \label{eq:posKKT} \\
+\lambda_i x_i &= 0, \qquad i=1,\dots,n \notag \\
+x &\ge 0 \notag \\
+\lambda &\ge 0 \notag
 \end{align}
-System \eqref{firstordersystem} modifies these KKT conditions by changing complementary slackness to a connection between the primal and dual variables.  Their product is set to a positive constant.  Thus system \eqref{firstordersystem} describes a solution which is different from the KKT conditions for \eqref{minproblem}.
+Thus the barrier method which generated system \eqref{eq:posfirstordersystem} modifies KKT conditions \eqref{eq:posKKT} by changing complementary slackness into a connection between the primal and dual variables.  (Their product is set to a positive constant.)  Thus system \eqref{eq:posfirstordersystem} describes a solution which is different from the KKT conditions for \eqref{eq:posproblem}.
 
-The stationary-point conditions for Lagrangian \eqref{Lagrangian} which would apply in the absence of positivity constraints, namely $\grad_x\mathcal{L}(x,\lambda)=0$ and $\grad_\lambda\mathcal{L}(x,\lambda)=0$, do not generally apply, of course.  (Making the inequality constraints into equalities would make the problem trivial!)  However, $x_i=0$ holds by definition when the $i$th constraint is active.  The algorithm here will not keep track of the active set but rather allow determination of the active set upon convergence, by use of a near-zero tolerance.
+The first KKT condition in \eqref{eq:posKKT} allows $\lambda$ to be eliminated if desired, i.e.~$\lambda = \grad f(x)$.  Writing the conditions without these dual variables gives a \emph{nonlinear complementary problem} (NCP) \cite{FacchineiPang2007},\footnote{NCP formulations also appear in problems which are not optimizations, rather variational inequalities \cite{BensonMunson2006,Bueler2016}.}
+\begin{equation}
+x \ge 0, \qquad \grad f(x) \ge 0, \qquad x_i (\grad f(x))_i = 0.  \label{eq:posNCP}
+\end{equation}
+Thus we may regard POPDIP as solving the barrier-modified NCP corresponding to \eqref{eq:posbarrierfunction}:
+    $$x \ge 0, \qquad \grad f(x) \ge 0, \qquad x_i (\grad f(x))_i = \mu.$$
+However, the method achieves quadratic convergence substantially because it updates both the primal variables $x$ and the dual variables $\lambda$, so stating the algorithm or the original KKT conditions as an NCP, suppressing the dual variables, is not beneficial.
 
-One of the KKT conditions \eqref{KKT} is $\grad f(x)-\lambda=0$ so $\lambda$ can be easily eliminated if desired.  In fact, writing the conditions without the dual variables gives a \emph{nonlinear complementary problem} (NCP) \cite{FacchineiPang2007},
-    $$x \ge 0, \qquad F(x) \ge 0, \qquad x_i F(x)_i = 0$$
-where $F(x) = \grad f(x)$ is a vector-valued function.  Thus we can regard our method as solving the barrier-modified NCP
-    $$x \ge 0, \qquad F(x) \ge 0, \qquad x_i F(x)_i = \mu.$$
-However, a primal-dual method for this NCP would re-introduce the dual variables so there is no benefit here of an NCP formulation other than to note the connection for future reference.  (An NCP formulation is appropriate if the problem were a variational inequality \cite{BensonMunson2006,Bueler2016} instead of actual optimization.)
 
+\subsection*{General problem solved by POPDIP}
+
+Suppose from now on that $f:\RR^n \to \RR$ is twice continuously-differentiable.  Let $A\in\RR^{m\times n}$, $m\le n$, be a full rank matrix, and suppose $b\in\RR^m$.  The POPDIP algorithm in the next section solves the problem
+\begin{equation}
+\begin{matrix}
+\text{minimize} \qquad   & f(x) \\
+\text{subject to} \qquad & A x = b \\
+                         & x \ge 0
+\end{matrix} \label{eq:problem}
+\end{equation}
+Observe that the constraints are in standard form for linear programming (LP) problems \cite[chapter 4]{GrivaNashSofer2009}.  The feasible set is
+\begin{equation}
+S = \{Ax=b \text{ and } x\ge 0\} \subset \RR^n.  \label{eq:feasible}
+\end{equation}
+If $f(x)=c^\top x$ for some fixed $c\in\RR^n$ then \eqref{eq:problem} is an LP problem in standard form.
+
+FIXME
 
 \subsection*{Algorithm design}
 
