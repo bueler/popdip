@@ -1,4 +1,4 @@
-function [xk,lamk,xklist,lamklist] = popdip(x0,f,tol,maxiters,theta,kappabar)
+function [xk,lamk,xklist,lamklist,muklist] = popdip(x0,f,tol,maxiters,theta,kappabar,samealpha)
 % POPDIP  POsitive-variables Primal-Dual Interior Point method.  This is a
 % version of Algorithm 16.1 in section 16.7 of Griva, Nash, Sofer (2009), but
 % specialized to
@@ -12,7 +12,7 @@ function [xk,lamk,xklist,lamklist] = popdip(x0,f,tol,maxiters,theta,kappabar)
 % equations are solved by O(n^3) Gauss elimination.
 % See documentation doc.pdf in doc/.
 % Basic usage:
-%   >> [xk,lamk,xklist,lamklist] = popdip(x0,f,tol,maxiters)
+%   >> [xk,lamk,xklist,lamklist,muklist] = popdip(x0,f,tol,maxiters)
 % where
 %   x0        initial iterate
 %   f         function with signature "[f,df,Hf] = f(x)" producing
@@ -25,6 +25,7 @@ function [xk,lamk,xklist,lamklist] = popdip(x0,f,tol,maxiters,theta,kappabar)
     if nargin < 4,  maxiters = 200;  end
     if nargin < 5,  theta = 0.1;     end
     if nargin < 6,  kappabar = 0.9;  end
+    if nargin < 7,  samealpha = true;  end
 
     if any(x0 <= 0.0),  error('initial iterate must be strictly feasible'),  end
 
@@ -46,6 +47,7 @@ function [xk,lamk,xklist,lamklist] = popdip(x0,f,tol,maxiters,theta,kappabar)
     if nargout > 2
         xklist = [xk];
         lamklist = [lamk];
+        muklist = [];
     end
 
     % loop: primal-dual interior point method uses Newton steps on barrier equations
@@ -73,12 +75,18 @@ function [xk,lamk,xklist,lamklist] = popdip(x0,f,tol,maxiters,theta,kappabar)
              - lamk .* xk + mu];
         p = M \ c;                          % Gaussian elimination: O(n^3)
         kappa = max(kappabar,1.0-meritk);   % formula page 646
-        alpha = ratiotest([xk;lamk],p,kappa);
-        xk = xk + alpha * p(1:n);
-        lamk = lamk + alpha * p(n+1:2*n);
+        if samealpha
+            alpha = ratiotest([xk;lamk],p,kappa);
+            xk = xk + alpha * p(1:n);
+            lamk = lamk + alpha * p(n+1:2*n);
+        else
+            xk = xk + ratiotest(xk,p(1:n),kappa) * p(1:n);
+            lamk = lamk + ratiotest(lamk,p(n+1:2*n),kappa) * p(n+1:2*n);
+        end
         if nargout > 2
             xklist = [xklist xk];
             lamklist = [lamklist lamk];
+            muklist = [muklist mu];
         end
     end
 end
