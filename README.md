@@ -1,15 +1,16 @@
 # POPDIP: a POsitive-variables Primal-Dual Interior Point method
 
-This algorithm, implemented in Matlab/Octave, solves the positivity-constrained,
-n-dimensional problem
+**Work in progress**
 
-$$\begin{matrix} \min & f(x) \\\\ \text{subject to} & x \ge 0 \end{matrix}$$
+This algorithm, implemented in Matlab/Octave, solves the following
+positivity-constrained n-dimensional problem with linear equality constraints:
+
+$$\begin{matrix} \min & f(x) \\\\ \text{subject to} & A x = b  \\\\ & x \ge 0 \end{matrix}$$
 
 This project is just for fun, and not research.  That is, nothing here is an
-original contribution beyond well-known algorithms.  Specifically, I regard
-this algorithm as a special case of Algorithm 16.1 in section 16.7 of the
-textbook Griva, Nash, Sofer, _Linear and Nonlinear Optimization_, 2nd ed., SIAM
-Press 2009.
+original contribution beyond well-known algorithms.  Specifically, POPDIP is
+a special case of Algorithm 16.1 in section 16.7 of the textbook Griva, Nash,
+& Sofer, _Linear and Nonlinear Optimization_, 2nd ed., SIAM Press 2009.
 
 ## running examples
 
