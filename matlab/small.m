@@ -1,4 +1,4 @@
-function small(x0,tol)
+function small(x0,rtol)
 % SMALL  Solves the small, 2-variable quadratic optimization problem
 %     min   f(x) = (1/2) (x_1-1)^2 + (1/2) (x_2+1)^2
 %     s.t.  x >= 0
@@ -6,17 +6,19 @@ function small(x0,tol)
 % looks quadratic.
 
     if nargin < 1,  x0 = [2; 2];  end
-    if nargin < 2,  tol = 1.0e-14;  end
+    if nargin < 2,  rtol = 1.0e-14;  end
 
-    [xk,lamk,xklist,lamklist,muklist] = popdip(x0,@smallfcn,tol);
+    [xk,lamk,xklist,lamklist,nuklist,muklist] = popdip(x0,@smallfcn,rtol);
 
     N = size(xklist,2);
-    fprintf('        x_1                  x_2                  mu\n');
+    fprintf('        x_1                  x_2                  nu_k                 mu_k\n');
     for k = 1:N
         if k == 1
-            fprintf('%3d: %20.15f %20.15f\n',k,xklist(1,k),xklist(2,k));
+            fprintf('%3d: %20.15f %20.15f %20.15f\n',...
+                    k-1,xklist(1,k),xklist(2,k),nuklist(k));
         else
-            fprintf('%3d: %20.15f %20.15f %20.15f\n',k,xklist(1,k),xklist(2,k),muklist(k-1));
+            fprintf('%3d: %20.15f %20.15f %20.15f %20.15f\n',...
+                    k-1,xklist(1,k),xklist(2,k),nuklist(k),muklist(k-1));
         end
         %fprintf('%3d: %20.15f %20.15f %20.15f %20.15f\n',...
         %        k,xklist(1,k),xklist(2,k),lamklist(1,k),lamklist(2,k));

@@ -1,4 +1,4 @@
-function [xk,lamk,xklist,lamklist,muklist] = popdip(x0,f,tol,maxiters,theta,kappabar,samealpha)
+function [xk,lamk,xklist,lamklist,nuklist,muklist] = popdip(x0,f,rtol,atol,maxiters,theta,kappabar,samealpha)
 % POPDIP  POsitive-variables Primal-Dual Interior Point method.  This is a
 % version of Algorithm 16.1 in section 16.7 of Griva, Nash, Sofer (2009), but
 % specialized to
@@ -12,20 +12,22 @@ function [xk,lamk,xklist,lamklist,muklist] = popdip(x0,f,tol,maxiters,theta,kapp
 % equations are solved by O(n^3) Gauss elimination.
 % See documentation doc.pdf in doc/.
 % Basic usage:
-%   >> [xk,lamk,xklist,lamklist,muklist] = popdip(x0,f,tol,maxiters)
+%   >> [xk,lamk,xklist,lamklist,nuklist,muklist] = popdip(x0,f,rtol,atol,maxiters)
 % where
 %   x0        initial iterate
 %   f         function with signature "[f,df,Hf] = f(x)" producing
 %             f(x), gradient df(x), and Hessian Hf(x)
-%   tol       convergence tolerance (default 10^-4)
+%   rtol      relative convergence tolerance (default 10^-4)
+%   atol      absolute convergence tolerance (default 10^-50)
 %   maxiters  stop after this many iterations
 % Examples: SMALL and OBSTACLE
 
-    if nargin < 3,  tol = 1.0e-4;    end
-    if nargin < 4,  maxiters = 200;  end
-    if nargin < 5,  theta = 0.1;     end
-    if nargin < 6,  kappabar = 0.9;  end
-    if nargin < 7,  samealpha = true;  end
+    if nargin < 3,  rtol = 1.0e-4;    end
+    if nargin < 4,  atol = 1.0e-50;    end
+    if nargin < 5,  maxiters = 200;  end
+    if nargin < 6,  theta = 0.1;     end
+    if nargin < 7,  kappabar = 0.9;  end
+    if nargin < 8,  samealpha = false;  end
 
     if any(x0 <= 0.0),  error('initial iterate must be strictly feasible'),  end
 
@@ -47,6 +49,7 @@ function [xk,lamk,xklist,lamklist,muklist] = popdip(x0,f,tol,maxiters,theta,kapp
     if nargout > 2
         xklist = [xk];
         lamklist = [lamk];
+        nuklist = [];
         muklist = [];
     end
 
@@ -60,10 +63,16 @@ function [xk,lamk,xklist,lamklist,muklist] = popdip(x0,f,tol,maxiters,theta,kapp
         end
         [fxk, dfxk, Hfxk] = f(xk);          % call user's function
         meritk = merit(xk,lamk,dfxk);
+        if nargout > 2
+            nuklist = [nuklist meritk];
+        end
+        if meritk < atol
+            break
+        end
         if k == 1
             merit0 = meritk;
         else
-            if meritk/merit0 < tol
+            if meritk/merit0 < rtol
                 break
             end
         end

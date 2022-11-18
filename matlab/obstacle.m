@@ -1,18 +1,18 @@
-function obstacle(n,tol)
+function obstacle(n,rtol)
 % OBSTACLE  Uses POPDIP to solve
 %     min   f(u)
 %     s.t.  u >= 0
 % for f(u) given in OBSTACLEFCN.
 
     if nargin < 1,  n = 20;         end
-    if nargin < 2,  tol = 1.0e-12;  end
+    if nargin < 2,  rtol = 1.0e-12;  end
 
     % solve
     u0 = 0.1 * ones(n,1);  % strictly feasible
     dx = 1/(n+1);
     x = dx:dx:1-dx;
     %u0 = uexact(dx:dx:1-dx) + 0.001;
-    [uk,lamk,uklist,lamklist] = popdip(u0,@obstaclefcn,tol);
+    [uk,lamk,uklist,lamklist] = popdip(u0,@obstaclefcn,rtol);
     %format long, uklist'
     fprintf('%d iterations\n',size(uklist,2))
     uex = uexact(x)';
