@@ -12,18 +12,18 @@ function obstacle(n,rtol)
     dx = 1/(n+1);
     x = dx:dx:1-dx;
     %u0 = uexact(dx:dx:1-dx) + 0.001;
-    [uk,lamk,uklist,lamklist] = popdip(u0,@obstaclefcn,rtol);
+    [uk,_,lamk,iterlist] = popdip(u0,@obstaclefcn,[],[],rtol);
     %format long, uklist'
-    fprintf('%d iterations\n',size(uklist,2))
+    fprintf('%d iterations\n',size(iterlist,2))
     uex = uexact(x)';
     fprintf('||u-uexact|| = %.3e\n',norm(uk-uex,'inf'))
 
     % plot iterates
     figure(1), clf
     subplot(1,2,1)
-    K = size(uklist,2);
+    K = size(iterlist,2);
     for j = 1:K-1
-        plot(x,uklist(:,j),'k'), hold on
+        plot(x,iterlist(1:n,j),'k'), hold on
     end
     plot(x,uk,'r')
     xlabel x, grid on
@@ -44,4 +44,3 @@ end
         uu(abs(x-0.5) >= a) = 0;
         uu = 100 * uu;
     end
-
