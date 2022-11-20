@@ -90,7 +90,11 @@ function [xk,tauk,lamk,iteratelist,nulist,mulist] = popdip(...
         end
         [fk, gk, Hk] = f(xk);          % call user's function
         % check stopping condition
-        meritk = merit(xk,tauk,lamk,gk);
+        if m > 0
+            meritk = merit(xk,tauk,lamk,gk,A,b);
+        else
+            meritk = merit(xk,tauk,lamk,gk,[],[]);
+        end
         if nargout > 3
             nulist = [nulist meritk];
         end
@@ -144,14 +148,14 @@ function [xk,tauk,lamk,iteratelist,nulist,mulist] = popdip(...
     end
 end
 
-    function z = merit(x,tau,lam,dfx)
+    function z = merit(x,tau,lam,dfx,A,b)
         if length(tau) > 0
-            z = max(norm(dfx - A'*tau - lam),...
-                    norm(b - A*x),...
-                    norm(lam.*x));
+            z = max([norm(dfx - A'*tau - lam),...
+                     norm(b - A*x),...
+                     norm(lam.*x)]);
         else
-            z = max(norm(dfx - lam),...
-                    norm(lam.*x));
+            z = max([norm(dfx - lam),...
+                     norm(lam.*x)]);
         end
     end
 
