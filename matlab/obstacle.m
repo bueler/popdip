@@ -3,20 +3,38 @@ function obstacle(n,rtol)
 %     min   f(u)
 %     s.t.  u >= 0
 % for f(u) given in OBSTACLEFCN.
+% See OBSTACLEFCN and POPDIP.
 
-    if nargin < 1,  n = 20;         end
+    if nargin < 1,  n = 20;  end
     if nargin < 2,  rtol = 1.0e-12;  end
 
-    % solve
-    u0 = 0.1 * ones(n,1);  % strictly feasible
     dx = 1/(n+1);
     x = dx:dx:1-dx;
-    %u0 = uexact(dx:dx:1-dx) + 0.001;
-    [uk,_,lamk,iterlist] = popdip(u0,@obstaclefcn,[],[],rtol);
-    %format long, uklist'
-    fprintf('%d iterations\n',size(iterlist,2))
+
+    % initial iterate is strictly feasible
+    u0 = 0.1 * ones(n,1);
+
+    % solve using a faster-shrinking barrier: theta=0.001
+    theta = 0.001;
+    [uk,_,lamk,iterlist,nuklist,muklist] = popdip(u0,@obstaclefcn,[],[],rtol,1.0e-50,1000,theta);
+
+    % print run info
+    N = size(iterlist,2);
+    fprintf('        nu_k                 mu_k\n');
+    for k = 1:N
+        if k == 1
+            fprintf('%3d: %20.15f\n',...
+                    k-1,nuklist(k));
+        else
+            fprintf('%3d: %20.15f %20.15f\n',...
+                    k-1,nuklist(k),muklist(k-1));
+        end
+    end
+
+    % print summary and error norm
     uex = uexact(x)';
-    fprintf('||u-uexact|| = %.3e\n',norm(uk-uex,'inf'))
+    fprintf('%d iterations with n=%d: ||u-uexact|| = %.3e\n',...
+            size(iterlist,2),n,norm(uk-uex,'inf'))
 
     % plot iterates
     figure(1), clf
