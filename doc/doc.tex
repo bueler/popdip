@@ -6,68 +6,20 @@
 \addtolength{\textwidth}{1.4in}
 \addtolength{\textheight}{1.3in}
 
-\renewcommand{\baselinestretch}{1.075}
+\renewcommand{\baselinestretch}{1.06}
 
-\usepackage{verbatim,fancyvrb}
-
+\usepackage{fancyvrb,xspace}
 \usepackage{palatino,amsmath,amssymb,amsthm}
-
-\usepackage{tikz}
-\usetikzlibrary{arrows.meta}
-
-\newtheorem*{thm}{Theorem}
-\newtheorem*{defn}{Definition}
-\newtheorem*{example}{Example}
-\newtheorem*{problem}{Problem}
-\newtheorem*{remark}{Remark}
-
-\newcommand{\mtt}{\texttt}
-\usepackage{alltt,xspace}
-
-%\usepackage[final]{graphicx}
-
+\usepackage[final]{graphicx}
 \usepackage[pdftex, colorlinks=true, plainpages=false, linkcolor=blue, citecolor=red, urlcolor=blue]{hyperref}
 
 % macros
-\newcommand{\bc}{\mathbf{c}}
-\newcommand{\br}{\mathbf{r}}
-\newcommand{\bv}{\mathbf{v}}
-\newcommand{\bx}{\mathbf{x}}
-\newcommand{\by}{\mathbf{y}}
-
-\newcommand{\CC}{\mathbb{C}}
 \newcommand{\RR}{\mathbb{R}}
-\newcommand{\ZZ}{\mathbb{Z}}
-
-\newcommand{\eps}{\epsilon}
 \newcommand{\grad}{\nabla}
 \newcommand{\lam}{\lambda}
-\newcommand{\lap}{\triangle}
-
-\newcommand{\ip}[2]{\ensuremath{\left<#1,#2\right>}}
-
-%\renewcommand{\det}{\operatorname{det}}
-\newcommand{\onull}{\operatorname{null}}
-\newcommand{\rank}{\operatorname{rank}}
-\newcommand{\range}{\operatorname{range}}
-
-\newcommand{\prob}[1]{\bigskip\noindent\textbf{#1.}\quad }
-\newcommand{\exer}[2]{\prob{Exercise #2 in Lecture #1}}
-
-\newcommand{\pts}[1]{(\emph{#1 pts}) }
-\newcommand{\epart}[1]{\medskip\noindent\textbf{(#1)}\quad }
-\newcommand{\ppart}[1]{\,\textbf{(#1)}\quad }
-
-\newcommand{\Julia}{\textsc{Julia}\xspace}
+\newcommand{\ds}{\displaystyle}
 \newcommand{\Matlab}{\textsc{Matlab}\xspace}
-\newcommand{\Octave}{\textsc{Octave}\xspace}
-\newcommand{\Python}{\textsc{Python}\xspace}
 
-\DefineVerbatimEnvironment{mVerb}{Verbatim}{numbersep=2mm,
-frame=lines,framerule=0.1mm,framesep=2mm,xleftmargin=4mm,fontsize=\footnotesize}
-
-\newcommand{\ema}{\emach}
-\newcommand{\emach}{\eps_{\!_{\text{m}}}}
 
 \title{POPDIP: a POsitive-variables \\ Primal-Dual Interior Point optimization method}
 \author{Ed Bueler}
@@ -369,71 +321,149 @@ x_{k+1} &= x_k + \alpha_x \Delta x \\
 \end{quote}
 
 
-
 \subsection*{\Matlab implementation}
 
-The POPDIP algorithm is implemented by a \Matlab code \href{https://github.com/bueler/popdip/blob/main/matlab/popdip.m}{\texttt{popdip.m}}.  If one wants to accept default parameters then the signature is
-
-FIXME $\tau_k$ output too
+The POPDIP algorithm is implemented by a \Matlab code \href{https://github.com/bueler/popdip/blob/main/matlab/popdip.m}{\texttt{popdip.m}}.  If one wants to accept the default parameter values then the signature is
 
 \medskip
-\centerline{\texttt{function [xk,lamk] = popdip(x0,f)}}
+\centerline{\texttt{function [x,tau,lam] = popdip(x0,f,A,b)}}
 
 \medskip
-\noindent For more control the input parameters can be set as follows:
+\noindent where \texttt{x} $\in\RR^n$, \texttt{tau} $\in\RR^m$, \texttt{lam} $\in\RR^n$ are approximations of the solution to \eqref{eq:kkt}.  The user-provided function \texttt{f} has signature
 
 \medskip
-\centerline{\texttt{popdip(x0,f,rtol,atol,maxiters,theta,kappabar)}}
+\centerline{\texttt{function [fx,dfx,Hfx] = f(x)}}
 
 \medskip
-\noindent The parameters have the default values listed in the last section.  Additional diagnostic outputs can be requested by using more output arguments; if none of them are requested then they are not saved.
+\noindent where \texttt{fx} $\in\RR$ is the objective value, \texttt{dfx} $\in\RR^n$ is the gradient, and \texttt{Hfx} $\in\RR^{n\times n}$ is the Hessian.
+
+For more control the POPDIP parameters can be set to non-default value as follows:
 
 \medskip
-\centerline{\texttt{[xk,lamk,xklist,lamklist,nuklist,muklist] = popdip(x0,f,\dots)}}
+\centerline{\texttt{popdip(x0,f,A,b,rtol,atol,maxiters,theta,kappabar)}}
 
 \medskip
-\noindent Download the \href{https://github.com/bueler/popdip/blob/main/matlab/popdip.m}{\texttt{popdip.m}} code, this documentation, and the examples shown below from the Github repository
+\noindent The parameters have the default values listed in the last section.
+
+Additional diagnostic outputs can be requested by using more output arguments:
+
+\medskip
+\centerline{\texttt{[x,tau,lam,iteratelist,nuklist,muklist] = popdip(\dots)}}
+
+\medskip
+\noindent If \texttt{iteratelist} is not requested then none of \texttt{iteratelist,nuklist,muklist} are saved.
+
+Download the \href{https://github.com/bueler/popdip/blob/main/matlab/popdip.m}{\texttt{popdip.m}} code, this documentation, and the examples in the next section from the Github repository:
 \begin{center}
     \href{https://github.com/bueler/popdip}{\texttt{github.com/bueler/popdip}}
 \end{center}
 
 
-\subsection*{Example 1}
+\subsection*{Examples}
 
-We first try a small 2D test problem in \href{https://github.com/bueler/popdip/blob/main/matlab/small.m}{\texttt{small.m}}:
+\subsubsection*{Example 1.}
+
+We first try a small 2D test problem in \href{https://github.com/bueler/popdip/blob/main/matlab/small.m}{\texttt{small.m}}, which is a positivity-constrained quadratic minimization:
 \begin{equation}
 \begin{matrix}
 \text{minimize} \qquad & f(x) = \frac{1}{2} (x_1-1)^2 + \frac{1}{2} (x_2+1)^2 \\
 \text{subject to} \qquad & x \ge 0
-\end{matrix} \label{testoneproblem}
+\end{matrix} \label{eq:smallproblem}
 \end{equation}
-For this objective function $f$ the unconstrained minimum is the infeasible point $\hat x =(1,-1)^\top$.  A sketch shows that the exact solution of the constrained problem is $x_*=(1,0)^\top$.  Running the code with the given initial iterate $x_0=(2,2)^\top$ and \texttt{tol} $=10^{-14}$, and otherwise using the default parameters in POPDIP, gives
-\begin{Verbatim}[fontsize=\small]
->> testpopdip([2 2]',1.0e-14)
-  1:    2.000000000000000    2.000000000000000
-  2:    1.641421356237309    0.641421356237310
-  3:    1.245446520462486    0.245446520462486
-  4:    1.069404818969903    0.069404818969903
-  5:    1.013447008853577    0.013447008853577
-  6:    1.000537794151783    0.000537794151783
-  7:    1.000000867357066    0.000000867357066
-  8:    1.000000000002257    0.000000000002257
-  9:    1.000000000000000    0.000000000000000
+The unconstrained minimum is the infeasible point $\hat x =(1,-1)^\top$.  A sketch shows that the exact solution of the constrained problem is $x_*=(1,0)^\top$.
+
+Running with the given initial iterate $x_0=(2,2)^\top$ and \texttt{rtol} $=10^{-14}$, and otherwise using the default parameters in POPDIP, gives strongly superlinear, and possibly quadratic, convergence:
+\begin{Verbatim}[fontsize=\footnotesize]
+>> small
+        x_1                  x_2                  nu_k                 mu_k
+  0:    2.000000000000000    2.000000000000000    5.656854249492381
+  1:    1.641421356237309    0.641421356237310    1.488944443027284    0.565685424949238
+  2:    1.245446520462486    0.245446520462486    0.432311672017441    0.148894444302728
+  3:    1.069404818969903    0.069404818969903    0.104965543876699    0.043231167201744
+  4:    1.013447008853577    0.013447008853577    0.019272663285475    0.010496554387670
+  5:    1.000537794151783    0.000537794151783    0.000760964805668    0.000371435550115
+  6:    1.000000867357066    0.000000867357066    0.000001226629190    0.000000579067435
+  7:    1.000000000002257    0.000000000002257    0.000000000003192    0.000000000001505
+  8:    1.000000000000000    0.000000000000000    0.000000000000000    0.000000000000000
 \end{Verbatim}
-The printed columns are $(x_k)_1$ and $(x_k)_2$.  Note the apparent quadratic, or at least strongly superlinear, convergence.  The iterates $x_k$ are graphed in the following figure.
+Both the merit function values $\nu_k$ and the barrier parameters $\mu_k$ go rapidly to zero.  The iterates $x_k$ are graphed in the following figure.
 
 \bigskip
 \begin{center}
-\includegraphics[width=0.6\textwidth]{testpopdip}
+\includegraphics[width=0.5\textwidth]{figs/small.pdf}
 \end{center}
 
 
-\subsection*{Example 2}
+\subsubsection*{Example 2.}
 
-FIXME linear programming in 2D
+The next problem is an $n=5$ linear programming (LP) problem, in standard form, with $m=3$ linear equality constraints:
+\begin{equation}
+\begin{matrix}
+\text{minimize} \qquad & f(x) = c^\top x \\
+\text{subject to} \qquad & A x = b \\
+ & x \ge 0
+\end{matrix} \label{eq:linearproblem}
+\end{equation}
+where $\ds c = \begin{bmatrix} -1 & -2 & 0 & 0 & 0 \end{bmatrix}^\top$, $\ds A = \begin{bmatrix} -2 & 1 & 1 & 0 & 0 \\ -1 & 2 & 0 & 1 & 0 \\ 1 & 0 & 0 & 0 & 1 \end{bmatrix}$, and $\ds b = \begin{bmatrix} 2 & 7 & 3 \end{bmatrix}^\top$.  The same problem is solved by the simplex method in \cite[section 5.2]{GrivaNashSofer2009}, where the solution is found on the third iteration starting from the basic feasible solution $x=0$.  The standard-form problem arises from the LP problem
+\begin{equation}
+\begin{matrix}
+\text{minimize} \qquad & z = -x_1 - 2x_2 \\
+\text{subject to} \qquad & -2x_1 + x_2 \le 2 \\
+ & -x_1 + 2x_2 \le 7 \\
+ & x_1 \le 3 \\
+ & x_1, x_2 \ge 0
+\end{matrix} \label{eq:twodlp}
+\end{equation}
+which can be easily sketched.
+
+The standard-form LP problem is defined in a short driver program \href{https://github.com/bueler/popdip/blob/main/matlab/linear.m}{\texttt{linear.m}}.  It runs POPDIP with initial iterate $x_0=(1,1,1,1,1)^\top$ and \texttt{rtol} $=10^{-14}$, otherwise using the default parameters.  The result is strongly superlinear convergence similar to Example 1:
+\begin{Verbatim}[fontsize=\footnotesize]
+>> linear
+        x_1                  x_2                  nu_k                 mu_k
+  0:    1.000000000000000    1.000000000000000    5.477225575051662
+  1:    1.749124060578910    3.650175187884218    2.662463982283214    0.547722557505166
+  2:    2.771966360502739    4.813544496010846    0.673064121890067    0.266246398228321
+  3:    2.977196636050274    4.937189711618397    0.151356274478520    0.067306412189007
+  4:    2.993139910878286    4.988863175677374    0.033061726195566    0.015135627447852
+  5:    2.999412769621014    4.999167116475287    0.002445966295331    0.001093077739031
+  6:    2.999996717485349    4.999995406776724    0.000013394027090    0.000005982751118
+  7:    2.999999999901378    4.999999999862158    0.000000000401658    0.000000000179400
+  8:    3.000000000000000    5.000000000000000    0.000000000000000    0.000000000000000
+\end{Verbatim}
+
+The 2D iterates $x_k$ are graphed below.  This looks like the ideal performance of an interior-point method on an LP problem.  Compare figure 5.1, chapter 10, and section 10.6 in \cite{GrivaNashSofer2009}.
+
+\bigskip
+\begin{center}
+\includegraphics[width=0.35\textwidth]{figs/linear.pdf}
+\end{center}
+
+It is worth considering the Newton step \eqref{eq:newtonstep} in this LP case.  Because the objective function $f(x) = c^\top x$ is linear, the gradient is constant and the Hessian is zero:
+\begin{equation}
+\begin{bmatrix}
+0         & -A^\top & -I \\
+-A        & 0       & 0  \\
+\Lambda_k & 0       & X_k
+\end{bmatrix}
+\begin{bmatrix}
+\Delta x \\
+\Delta \tau \\
+\Delta \lambda
+\end{bmatrix}
+=
+\begin{bmatrix}
+-c + A^\top \tau_k + \lambda_k \\
+A x_k - b \\
+\mu_k e - \Lambda_k x_k
+\end{bmatrix}. \label{eq:lpnewtonstep}
+\end{equation}
+
+Perhaps surprisingly, given that a positive-definite leading block has disappeared, compared to the quadratic minimization case, the square system matrix $M$ on the left of \eqref{eq:lpnewtonstep} is invertible when $\mu_k>0$.  (See the proof in the Appendix which uses the facts that $A$ has full row rank and $\mu_k\ne 0$.)  Thus it is okay that in Example 2 the \href{https://github.com/bueler/popdip/blob/main/matlab/linear.m}{\texttt{linear.m}} code supplies a zero Hessian.
+
+When one measures the conditioning of $M$ in practice, it actually holds steady as $\mu_k\to 0$.  This is something I do not see how to prove.
 
 
-\subsection*{Example 3}
+\subsubsection*{Example 3.}
 
 FIXME obstacle problem in 1D: \href{https://github.com/bueler/popdip/blob/main/matlab/obstacle.m}{\texttt{obstacle.m}}
 
@@ -505,6 +535,20 @@ Determining if these are actual improvements would require testing which we have
 
 \bibliography{doc}
 \bibliographystyle{siam}
+
+\appendix
+\subsection*{Appendix: Invertibility of the system matrix in LP cases.}
+
+The square system matrix $M$ on the left of \eqref{eq:lpnewtonstep} is invertible.
+
+\begin{proof}  If $\mu_k>0$ then $x_k,\lambda_k$ are strictly positive so the diagonal matrices $\Lambda_k,X_k$ are (trivially) invertible.  If $Mp=0$ for $p=(\Delta x,\Delta \tau,\Delta \lambda)$ then, by the first equation in \eqref{eq:lpnewtonstep}, $\Delta\lam=-A^\top\Delta\tau$ can be eliminated.  This gives
+\begin{align*}
+-A \Delta x \hspace{20mm} &= 0 \\
+\Lambda_k \Delta x - X_k A^\top \Delta \tau &= 0
+\end{align*}
+Multiplying the second equation here by $X_k$ and observing that $X_k\Lambda_k = \mu_k I$, we can write $\mu_k\Delta x = X_k^2 A^\top \Delta \tau$.  Since $\mu_k\ne 0$, the remaining equation now says
+    $$A X_k^2 A^\top \Delta \tau = 0.$$
+Recall that since $A$ has full row rank it has columns which span $\RR^m$.  This is not changed by scaling each column by a nonzero value, so $AX_k$ also has full row rank.  But then $A X_k^2 A^\top = (AX_k) (AX_k)^\top$ is invertible, so $\Delta \tau=0$.  Thus $p=0$, so the null space of $M$ is trivial, so $M$ is invertible.\end{proof}
 
 \end{document}
 
