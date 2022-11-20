@@ -1,7 +1,5 @@
 # POPDIP: a POsitive-variables Primal-Dual Interior Point method
 
-**Work in progress**
-
 This algorithm, implemented in Matlab/Octave, solves the following
 positivity-constrained n-dimensional problem with linear equality constraints:
 
@@ -19,17 +17,23 @@ is in `popdip.m`.
 
         >> help popdip
 
-The two functioning examples are in `small.m` and `obstacle.m`:
+To use `popdip.m` effectively, you will probably need a driver program.  The
+three examples are `small.m`, `linear.m`, and `obstacle.m`:
 
         >> small
+        >> linear
         >> obstacle
 
 ## documentation
 
-Read `doc/doc.pdf` after doing `make` in `doc/`.
+Read `doc.pdf`.
+
+This LaTeX document can be rebuilt, which requires `pdflatex` and `bibtex`, by
+doing `make` in the `doc/` directory.
 
 ## history
 
-The first version of this project was in my Math 661 Optimization course in
-Fall 2018.  See [bueler.github.io/M661F18/](https://bueler.github.io/M661F18/index.html)
-and look among the Matlab/Octave codes.
+The first version of this project was demonstrated in my Math 661 Optimization
+course in Fall 2018.  (See [bueler.github.io/M661F18/](https://bueler.github.io/M661F18/index.html)
+and look among the Matlab/Octave codes.)  The current version is an example
+in the Fall 2022 instance of the same course; see [bueler.github.io/opt/](https://bueler.github.io/opt/).
