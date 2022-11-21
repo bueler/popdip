@@ -1,9 +1,10 @@
 function obstacle(n,rtol)
-% OBSTACLE  Uses POPDIP to solve
+% OBSTACLE  Uses POPDIP to solve a continuum optimizaton problem
+% with positivity constraints:
 %     min   f(u)
 %     s.t.  u >= 0
-% for f(u) given in OBSTACLEFCN.
-% See OBSTACLEFCN and POPDIP.
+% The quadratic function f(u) is given in OBSTACLEFCN.  This driver program
+% calls POPDIP, prints information about the run, and generates two figures.
 
     if nargin < 1,  n = 20;  end
     if nargin < 2,  rtol = 1.0e-12;  end
@@ -38,21 +39,22 @@ function obstacle(n,rtol)
 
     % plot iterates
     figure(1), clf
-    subplot(1,2,1)
     K = size(iterlist,2);
     for j = 1:K-1
         plot(x,iterlist(1:n,j),'k'), hold on
     end
-    plot(x,uk,'r')
-    xlabel x, grid on
+    plot(x,uk,'r'),  xlabel x,  grid on
+    title('iterates in black, numerical solution in red')
 
     % plot exact solution and final iterate
-    subplot(1,2,2)
-    plot(x,uk,'r')
-    hold on
+    figure(2)
+    subplot(3,1,1:2)
     xf = 0:.001:1;
-    plot(xf,uexact(xf),'b')
-    xlabel x, grid on
+    plot(x,uk,'r'),  hold on,  plot(xf,uexact(xf),'b')
+    ylabel('solutions'),  title('numerical in red, exact in blue'),  grid on
+    subplot(3,1,3)
+    plot(x,abs(uk' - uexact(x)),'k')
+    xlabel x,  ylabel('numerical error'),  grid on
 end
 
     function uu = uexact(x)
