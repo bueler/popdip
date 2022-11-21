@@ -19,7 +19,8 @@ function kleeminty(m,x0,rtol)
     x0 = [x0; b];
 
     % solve
-    [xk,tauk,lamk,iterlist,nuklist,muklist] = popdip(x0,@kleemintyfcn,A,b,rtol,1.0e-50,2000);
+    [xk,tauk,lamk,iterlist,nuklist,muklist] = popdip(...
+        x0,@kleemintyfcn,A,b,rtol,1.0e-50,10000);
 
     % print run info
     N = size(iterlist,2);

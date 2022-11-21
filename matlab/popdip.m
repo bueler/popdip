@@ -111,30 +111,26 @@ function [xk,tauk,lamk,iteratelist,nulist,mulist] = popdip(...
         % set up and solve Newton step equations
         mu = min(theta*meritk,meritk^2);
         if m > 0
-            MM = [Hk,          -A',         -eye(n,n);
-                  -A,          zeros(m,m),  zeros(m,n),
-                  diag(lamk),  zeros(n,m),  diag(xk)];
-            c = [- gk + A' * tauk + lamk;
-                 A * xk - b;
-                 mu - lamk .* xk];
+            MM = [Hk + diag(lamk ./ xk),  -A';
+                  -A,                     zeros(m,m)];
+            c = [- gk + A' * tauk + mu ./ xk;
+                 A * xk - b];
         else
-            MM = [Hk,         -eye(n,n);
-                  diag(lamk), diag(xk)];
-            c = [- gk + lamk;
-                 mu - lamk .* xk];
+            MM = [Hk + diag(lamk ./ xk)];
+            c = [- gk + mu ./ xk];
         end
         %cond(MM)
-        p = MM \ c;                          % Gaussian elimination: O(n^3)
+        p = MM \ c;  % Gaussian elimination: O((n+m)^3)
+        % note: (dx,dtau) = (p(1:n),p(n+1:n+m))
+        dlam = mu ./ xk - lamk - (lamk ./ xk) .* p(1:n);
         % apply ratio tests separately on x,lam
-        % note: (dx,dtau,dlam) = (p(1:n),p(n+1:n+m),p(n+m+1:n+m+n))
         kappa = max(kappabar,1.0-meritk);
-        [alphax, alphatau, alphalam] = ratiotest(xk,p(1:n),...
-                                                 lamk,p(n+m+1:n+m+n),kappa);
+        [alphax, alphatau, alphalam] = ratiotest(xk,p(1:n),lamk,dlam,kappa);
         xk = xk + alphax * p(1:n);
         if m > 0
             tauk = tauk + alphatau * p(n+1:n+m);
         end
-        lamk = lamk + alphalam * p(n+m+1:n+m+n);
+        lamk = lamk + alphalam * dlam;
         % append to output lists if desired
         if nargout > 3
             if m > 0

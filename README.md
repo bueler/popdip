@@ -17,8 +17,8 @@ is in `popdip.m`.
 
         >> help popdip
 
-To use `popdip.m` effectively, you will probably need a driver program.  The
-three examples are `small.m`, `linear.m`, and `obstacle.m`:
+To use `popdip.m` effectively, you will probably need a driver program.  Three
+such examples are `small.m`, `linear.m`, and `obstacle.m`:
 
         >> small
         >> linear

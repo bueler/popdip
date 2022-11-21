@@ -187,17 +187,17 @@ Rearranging this as a vectorized and matrix-block system gives
 -\grad f(x_k) + A^\top \tau_k + \lambda_k \\
 A x_k - b \\
 \mu_k e - \Lambda_k x_k
-\end{bmatrix}. \label{eq:newtonstep}
+\end{bmatrix}. \label{eq:unreducednewtonstep}
 \end{equation}
 Here $I$ is the $n\times n$ identity matrix, $e=(1,1,\dots,1)^\top \in \RR^n$, and we have defined $n\times n$ diagonal matrices from the primal/dual vectors $x,\lambda\in\RR^n$:
     $$X = \begin{bmatrix} x_1 & & \\ & \ddots & \\ & & x_n \end{bmatrix}, \qquad \Lambda = \begin{bmatrix} \lambda_1 & & \\ & \ddots & \\ & & \lambda_n \end{bmatrix}.$$
 Note that $\Lambda x = X \lambda$ in this notation.\footnote{The product $\Lambda x = X\lambda$ is simply \, \texttt{x.*lambda}\, in \Matlab.}
 
-Linear system \eqref{eq:newtonstep} can also be written as
+Linear system \eqref{eq:unreducednewtonstep} can also be written as
 \begin{equation}
 M p = - r \label{eq:overallnewtonstep}
 \end{equation}
-where $M$ is the $(2n+m) \times (2n+m)$ square, sparse \emph{system matrix} on the left side of \eqref{eq:newtonstep} and $r=r_k(x_k,\tau_k,\lambda_k) \in \RR^{2n+m}$ is the residual of system \eqref{eq:equalities} for the current iterate, using the \emph{residual function}
+where $M$ is the $(2n+m) \times (2n+m)$ square, sparse \emph{system matrix} on the left side of \eqref{eq:unreducednewtonstep} and $r=r_k(x_k,\tau_k,\lambda_k) \in \RR^{2n+m}$ is the residual of system \eqref{eq:equalities} for the current iterate, using the \emph{residual function}
 \begin{equation}
 r_k(x,\tau,\lambda) = \begin{bmatrix}
 \grad f(x) - A^\top \tau - \lambda \\
@@ -206,13 +206,39 @@ r_k(x,\tau,\lambda) = \begin{bmatrix}
 \end{bmatrix}. \label{eq:residualnewtonstep}
 \end{equation}
 
-We will solve system \eqref{eq:newtonstep}, equivalently \eqref{eq:overallnewtonstep}, using direct linear algebra, via Matlab's default ``$\backslash$'' linear solver.  Because this direct solver is quite accurate, the residual norm $\|b-A x_k\|$, part of the right-hand side of \eqref{eq:newtonstep}, will be very small.  In this sense, system \eqref{eq:newtonstep} imposes the classical null-space requirement on the search direction for linear equality constraints \cite[chapter 3]{GrivaNashSofer2009}:
+In fact, system \eqref{eq:unreducednewtonstep} and \eqref{eq:overallnewtonstep} can be made immediately smaller by noting that the diagonal matrix $X_k$ is invertible, because $x_k>0$ strictly in \eqref{eq:equalities}.  Thus the last row of system \eqref{eq:unreducednewtonstep} can be solved for $\Delta\lambda$ in terms of $\Delta x$:
+\begin{equation}
+\Lambda_k\Delta x + X_k\Delta \lambda = \mu_k e - \Lambda_k x_k \quad \iff \quad
+\Delta\lambda = \mu_k X_k^{-1} e - \lambda_k - X_k^{-1} \Lambda_k \Delta x \label{eq:solvefordlam}
+\end{equation}
+Thus we will solve the smaller system
+\begin{equation}
+\begin{bmatrix}
+\grad^2 f(x_k) + X_k^{-1}\Lambda_k & -A^\top \\
+-A             & 0
+\end{bmatrix}
+\begin{bmatrix}
+\Delta x \\
+\Delta \tau
+\end{bmatrix}
+=
+\begin{bmatrix}
+-\grad f(x_k) + A^\top \tau_k + \mu_k X_k^{-1} e \\
+A x_k - b
+\end{bmatrix} \label{eq:newtonstep}
+\end{equation}
+for $\Delta x,\Delta\tau$, and then complete the computation of $p=(\Delta x,\Delta\tau,\Delta\lambda)$ by assigning
+\begin{equation}
+\Delta\lambda = \mu_k X_k^{-1} e - \lambda_k - X_k^{-1} \Lambda_k \Delta x. \label{eq:newtonsteplam}
+\end{equation}
+
+We will solve system \eqref{eq:newtonstep} using direct linear algebra, via Matlab's default ``$\backslash$'' linear solver.  Because this direct solver is quite accurate, the residual norm $\|b-A x_k\|$, part of the right-hand side of \eqref{eq:newtonstep}, will be very small.  In this sense, system \eqref{eq:newtonstep} imposes the classical null-space requirement on the search direction for linear equality constraints \cite[chapter 3]{GrivaNashSofer2009}:
 \begin{equation}
 A \Delta x = 0.  \label{eq:dxnull}
 \end{equation}
-On the other hand, use of a direct solver means the implementation is not scalable to large problem sizes.  A scalable implementation would not assemble the full matrix $M$ in \eqref{eq:overallnewtonstep}, and it might use an iterative solver, along the way exploiting the sparse block structure of $M$ including the symmetry of its upper-left $2\times 2$ block.  Preconditioners \cite{Bueler2021} for the $\grad^2 f(x_k)$ block and the equality-constraint Schur complement \cite[chapters 14]{Bueler2021} should be considered.
+On the other hand, use of a direct solver means the implementation is not scalable to large problem sizes.  A scalable implementation would not assemble the full matrix $M$ in \eqref{eq:newtonstep}, and it might use an iterative solver, along the way exploiting the sparse block structure of $M$ including the symmetry of its upper-left $2\times 2$ block.  Preconditioners \cite{Bueler2021} for the upper-left block, and then for the equality-constraint Schur complement \cite[chapters 14]{Bueler2021}, should be considered.
 
-Given a solution $(\Delta x,\Delta\tau,\Delta\lambda)$ of \eqref{eq:newtonstep}, the update formulas are
+Given a solution $(\Delta x,\Delta\tau,\Delta\lambda)$ of \eqref{eq:newtonstep} and \eqref{eq:newtonsteplam}, the update formulas are
 \begin{align}
 x_{k+1} &= x_k + \alpha_x \Delta x \label{eq:updates} \\
 \tau_{k+1} &= \tau_k + \alpha_\tau \Delta \tau \notag \\
@@ -284,27 +310,26 @@ We now present a pseudocode for POPDIP.  The defaults for parameters are $\text{
     \renewcommand{\labelenumi}{(\roman{enumi})}
     \begin{enumerate}
     \item evaluate gradient $g_k = \grad f(x_k)$
-    \item evaluate merit function of \eqref{eq:kkt}:
+    \item evaluate merit function:
     $$\nu_k = \max\{\|g_k-A^\top \tau_k - \lambda_k\|_2,\|b-Ax_k\|_2,\|\Lambda_k x_k\|_2\}$$
     \item optimality test: if $\nu_k<\text{\texttt{atol}}$ or $\nu_k<(\text{\texttt{rtol}})\, \nu_0$ then stop
     \item evaluate barrier parameter: $\mu_k = \min\{\theta \nu_k,\nu_k^2\}$
-    \item compute Newton step by solving linear system \eqref{eq:newtonstep} for $(\Delta x,\Delta \tau,\Delta \lambda)$:
+    \item solve linear system \eqref{eq:newtonstep} for $\Delta x$ and $\Delta \tau$:
     $$\begin{bmatrix}
-\grad^2 f(x_k) & -A^\top & -I \\
--A             & 0       & 0  \\
-\Lambda_k      & 0       & X_k
+\grad^2 f(x_k) + X_k^{-1}\Lambda_k & -A^\top \\
+-A             & 0
 \end{bmatrix}
 \begin{bmatrix}
 \Delta x \\
-\Delta \tau \\
-\Delta \lambda
+\Delta \tau
 \end{bmatrix}
 =
 \begin{bmatrix}
--g_k + A^\top \tau_k + \lambda_k \\
-A x_k - b \\
-\mu_k e - \Lambda_k x_k
+-g_k + A^\top \tau_k + \mu_k X_k^{-1} e \\
+A x_k - b
 \end{bmatrix}$$
+    \item evaluate $\Delta\Lambda$:
+    $$\Delta\lambda = \mu_k X_k^{-1} e - \lambda_k - X_k^{-1} \Lambda_k \Delta x$$
     \item evaluate ratio test parameter: $\kappa = \max\{\bar\kappa,1-\nu_k\}$
     \item apply ratio tests for step sizes, to keep $x_{k+1},\lambda_{k+1}$ positive:
 \begin{align*}
@@ -337,7 +362,7 @@ The POPDIP algorithm is implemented by a \Matlab code \href{https://github.com/b
 \centerline{\texttt{function [fx,dfx,Hfx] = f(x)}}
 
 \medskip
-\noindent where \texttt{fx} $\in\RR$ is the objective value, \texttt{dfx} $\in\RR^n$ is the gradient, and \texttt{Hfx} $\in\RR^{n\times n}$ is the Hessian.
+\noindent where \texttt{fx} $=f(x) \in\RR$ is the objective value, \texttt{dfx} $=\grad f(x) \in\RR^n$ is the gradient, and \texttt{Hfx} $= \grad^2 f(x) \in\RR^{n\times n}$ is the Hessian.
 
 For more control the POPDIP parameters can be set to non-default value as follows:
 
@@ -345,9 +370,7 @@ For more control the POPDIP parameters can be set to non-default value as follow
 \centerline{\texttt{popdip(x0,f,A,b,rtol,atol,maxiters,theta,kappabar)}}
 
 \medskip
-\noindent The parameters have the default values listed in the last section.
-
-Additional diagnostic outputs can be requested by using more output arguments:
+\noindent The parameters have the default values listed in the last section.  Additional diagnostic outputs can be requested by using more output arguments:
 
 \medskip
 \centerline{\texttt{[x,tau,lam,iteratelist,nuklist,muklist] = popdip(\dots)}}
@@ -355,10 +378,7 @@ Additional diagnostic outputs can be requested by using more output arguments:
 \medskip
 \noindent If \texttt{iteratelist} is not requested then none of \texttt{iteratelist,nuklist,muklist} are saved.
 
-Download the \href{https://github.com/bueler/popdip/blob/main/matlab/popdip.m}{\texttt{popdip.m}} code, this documentation, and the example codes demonstrated in the next section, from the Github repository:
-\begin{center}
-    \href{https://github.com/bueler/popdip}{\texttt{github.com/bueler/popdip}}
-\end{center}
+Download the \href{https://github.com/bueler/popdip/blob/main/matlab/popdip.m}{\texttt{popdip.m}} code, this documentation, and the example codes demonstrated in the next section, from the Github repository:\, \href{https://github.com/bueler/popdip}{\texttt{github.com/bueler/popdip}}.
 
 
 \subsection*{Examples}
@@ -392,7 +412,7 @@ Both the merit function values $\nu_k$ and the barrier parameters $\mu_k$ go rap
 
 \bigskip
 \begin{center}
-\includegraphics[width=0.5\textwidth]{figs/small.pdf}
+\includegraphics[width=0.4\textwidth]{figs/small.pdf}
 \end{center}
 
 
@@ -406,7 +426,7 @@ The next problem is an $n=5$ linear programming (LP) problem, in standard form, 
  & x \ge 0
 \end{matrix} \label{eq:linearproblem}
 \end{equation}
-where $\ds c = \begin{bmatrix} -1 & -2 & 0 & 0 & 0 \end{bmatrix}^\top$, $\ds A = \begin{bmatrix} -2 & 1 & 1 & 0 & 0 \\ -1 & 2 & 0 & 1 & 0 \\ 1 & 0 & 0 & 0 & 1 \end{bmatrix}$, and $\ds b = \begin{bmatrix} 2 & 7 & 3 \end{bmatrix}^\top$.  The same problem is solved by the simplex method in \cite[section 5.2]{GrivaNashSofer2009}, where the solution is found on the third iteration starting from the basic feasible solution $x=0$.  The standard-form problem arises from the LP problem
+where $\ds c = \begin{bmatrix} -1 & -2 & 0 & 0 & 0 \end{bmatrix}^\top$, $\ds A = \begin{bmatrix} -2 & 1 & 1 & 0 & 0 \\ -1 & 2 & 0 & 1 & 0 \\ 1 & 0 & 0 & 0 & 1 \end{bmatrix}$, and $\ds b = \begin{bmatrix} 2 & 7 & 3 \end{bmatrix}^\top$.  The same problem is solved by the simplex method in \cite[section 5.2]{GrivaNashSofer2009}, where the solution is found on the third iteration starting from the basic feasible solution $x=0$.  The above standard-form problem arises from the LP problem
 \begin{equation}
 \begin{matrix}
 \text{minimize} \qquad & z = -x_1 - 2x_2 \\
@@ -416,7 +436,12 @@ where $\ds c = \begin{bmatrix} -1 & -2 & 0 & 0 & 0 \end{bmatrix}^\top$, $\ds A =
  & x_1, x_2 \ge 0
 \end{matrix} \label{eq:twodlp}
 \end{equation}
-which can be easily sketched.
+This feasible set can be easily sketched; see the red outline in the figure below.
+
+\bigskip
+\begin{center}
+\includegraphics[width=0.3\textwidth]{figs/linear.pdf}
+\end{center}
 
 The standard-form LP problem is defined in a short driver program \href{https://github.com/bueler/popdip/blob/main/matlab/linear.m}{\texttt{linear.m}}.  It runs POPDIP with initial iterate $x_0=(1,1,1,1,1)^\top$ and \texttt{rtol} $=10^{-14}$, otherwise using the default parameters.  The result is strongly superlinear convergence similar to Example 1:
 \begin{Verbatim}[fontsize=\footnotesize]
@@ -433,38 +458,27 @@ The standard-form LP problem is defined in a short driver program \href{https://
   8:    3.000000000000000    5.000000000000000    0.000000000000000    0.000000000000000
 \end{Verbatim}
 
-The 2D iterates $x_k$ are graphed below.  This looks like the ideal performance of an interior-point method on an LP problem.  Compare figure 5.1, chapter 10, and section 10.6 in \cite{GrivaNashSofer2009}.
-
-\bigskip
-\begin{center}
-\includegraphics[width=0.35\textwidth]{figs/linear.pdf}
-\end{center}
+The 2D iterates $x_k$ are graphed in black above.  This looks like the ideal performance of an interior-point method on an LP problem.  Compare figure 5.1, chapter 10, and section 10.6 in \cite{GrivaNashSofer2009}.
 
 It is worth considering the Newton step \eqref{eq:newtonstep} in this LP case.  Because the objective function $f(x) = c^\top x$ is linear, the gradient is constant and the Hessian is zero:
 \begin{equation}
 \begin{bmatrix}
-0         & -A^\top & -I \\
--A        & 0       & 0  \\
-\Lambda_k & 0       & X_k
+X_k^{-1}\Lambda_k  & -A^\top \\
+-A                 & 0
 \end{bmatrix}
 \begin{bmatrix}
 \Delta x \\
-\Delta \tau \\
-\Delta \lambda
+\Delta \tau
 \end{bmatrix}
 =
 \begin{bmatrix}
--c + A^\top \tau_k + \lambda_k \\
-A x_k - b \\
-\mu_k e - \Lambda_k x_k
+-c + A^\top \tau_k + \mu_k X_k^{-1} e \\
+A x_k - b
 \end{bmatrix}. \label{eq:lpnewtonstep}
 \end{equation}
+Perhaps surprisingly, given that a positive-definite Hessian has disappeared, compared to the quadratic minimization case, the square system matrix on the left of \eqref{eq:lpnewtonstep} is invertible when $\mu_k>0$.  (See the proof in the Appendix which uses the facts that $A$ has full row rank and $\mu_k\ne 0$.)  Thus it is okay that in Example 2 the \href{https://github.com/bueler/popdip/blob/main/matlab/linear.m}{\texttt{linear.m}} code supplies a zero Hessian.
 
-Perhaps surprisingly, given that a positive-definite leading block has disappeared, compared to the quadratic minimization case, the square system matrix $M$ on the left of \eqref{eq:lpnewtonstep} is invertible when $\mu_k>0$.  (See the proof in the Appendix which uses the facts that $A$ has full row rank and $\mu_k\ne 0$.)  Thus it is okay that in Example 2 the \href{https://github.com/bueler/popdip/blob/main/matlab/linear.m}{\texttt{linear.m}} code supplies a zero Hessian.
-
-When one measures the conditioning of $M$ in practice, it actually holds steady as $\mu_k\to 0$.  This is something I do not see how to prove.
-
-Finally, regarding application of POPDIP to LP problems, one might ask how POPDIP does on the famously-worst-case-for-simplex Klee-Minty cube example \cite[chapter 9]{GrivaNashSofer2009}.  The answer for now is ``not any better than simplex.''  Compare the results of the \href{https://github.com/bueler/popdip/blob/main/matlab/kleeminty.m}{\texttt{kleeminty.m}} example code to the result of
+Finally, regarding application of POPDIP to LP problems, one might ask how POPDIP does on the famous worst-case-for-simplex Klee-Minty cube example \cite[chapter 9]{GrivaNashSofer2009}.  The answer for now is ``not any better than simplex''!   Presumably the parameters and details could be adjusted to improve the performance.  Compare the results of the \href{https://github.com/bueler/popdip/blob/main/matlab/kleeminty.m}{\texttt{kleeminty.m}} example code here to the result of
 
 \medskip
 \centerline{\href{https://bueler.github.io/opt/assets/codes/kleeminty.m}{\texttt{bueler.github.io/opt/assets/codes/kleeminty.m}}}
@@ -514,29 +528,7 @@ Hessian matrix
 
 FIXME
 \begin{itemize}
-\item add sufficient-decrease-type line search \cite[sections 19.3, 19.4]{NocedalWright2006} and the modified back-tracking line searches in \cite{BensonMunson2006}
-\item Equations \eqref{eq:newtonstep} can be symmetrized by multiplying the third row by $-\Lambda_k^{-1}$:
-\begin{equation}
-\begin{bmatrix}
-\grad^2 f(x) & -A^\top & - I \\
--A & 0 & 0 \\
--I & 0 & - \Lambda_k^{-1} X_k
-\end{bmatrix}
-\begin{bmatrix}
-\Delta x \\
-\Delta\tau \\
-\Delta\lambda
-\end{bmatrix}
-=
-\begin{bmatrix}
--\grad f(x_k) + A^\top \tau_k + \lambda_k \\
-A x_k - b \\
-x_k - \mu_k \Lambda_k^{-1} e
-\end{bmatrix}
- \label{eq:symmnewtonstep}
-\end{equation}
-This change allows application of symmetric linear solver techniques like Cholesky and MINRES \cite{Bueler2021}, but it also introduces the unbounded values $\lambda_k/x_k = \mu_k/x_k^2 \to +\infty$ into the calculation.  See \cite[section 19.3]{NocedalWright2006}.
-\item reduce dimension of Newton step equations \cite[section 14.2]{NocedalWright2006}
+\item add sufficient-decrease-type line search \cite[sections 19.3, 19.4]{NocedalWright2006}; compare the modified back-tracking line searches in \cite{BensonMunson2006}
 \item scalable linear algebra
 \item predictor-corrector structure \cite[section 14.2]{NocedalWright2006}
 \item adjust Hessian block to always be positive definite \cite[section 11.4]{GrivaNashSofer2009}
@@ -552,16 +544,33 @@ This change allows application of symmetric linear solver techniques like Choles
 \appendix
 \subsection*{Appendix: Invertibility of the system matrix in LP cases.}
 
-The square system matrix $M$ on the left of \eqref{eq:lpnewtonstep} is invertible.
+\newtheorem*{lemma}{Lemma}
 
-\begin{proof}  If $\mu_k>0$ then $x_k,\lambda_k$ are strictly positive so the diagonal matrices $\Lambda_k,X_k$ are (trivially) invertible.  If $Mp=0$ for $p=(\Delta x,\Delta \tau,\Delta \lambda)$ then, by the first equation in \eqref{eq:lpnewtonstep}, $\Delta\lam=-A^\top\Delta\tau$ can be eliminated.  This gives
-\begin{align*}
--A \Delta x \hspace{20mm} &= 0 \\
-\Lambda_k \Delta x - X_k A^\top \Delta \tau &= 0
-\end{align*}
-Multiplying the second equation here by $X_k$ and observing that $X_k\Lambda_k = \mu_k I$, we can write $\mu_k\Delta x = X_k^2 A^\top \Delta \tau$.  Since $\mu_k\ne 0$, the remaining equation now says
+Recall that if $\mu_k>0$, and because $(\lambda_k)_i (x_k)_i = \mu_k$, then $x_k,\lambda_k$ are strictly positive so the diagonal matrices $\Lambda_k,X_k$ are (trivially) invertible.
+
+\begin{lemma}
+The square system matrix on the left of \eqref{eq:lpnewtonstep} is invertible.
+\end{lemma}
+
+\begin{proof}  Suppose the system matrix on the left of \eqref{eq:lpnewtonstep} has a null space:
+\begin{equation}
+\begin{bmatrix}
+X_k^{-1}\Lambda_k  & -A^\top \\
+-A                 & 0
+\end{bmatrix}
+\begin{bmatrix}
+\Delta x \\
+\Delta \tau
+\end{bmatrix}
+= 0. \label{eq:invertlp}
+\end{equation}
+The first row of \eqref{eq:invertlp} says
+    $$X_k^{-1}\Lambda_k \Delta x = A^\top \Delta\tau.$$
+Multiplying this by $X_k^2$ and observing that $X_k\Lambda_k = \mu_k I$, we can write $\mu_k\Delta x = X_k^2 A^\top \Delta \tau$.  Since $\mu_k\ne 0$, the second row of \eqref{eq:invertlp}, $A\Delta x=0$, can be written as an equation for $\Delta\tau$:
     $$A X_k^2 A^\top \Delta \tau = 0.$$
-Recall that since $A$ has full row rank it has columns which span $\RR^m$.  This is not changed by scaling each column by a nonzero value, so $AX_k$ also has full row rank.  But then $A X_k^2 A^\top = (AX_k) (AX_k)^\top$ is invertible, so $\Delta \tau=0$.  Thus $p=0$, so the null space of $M$ is trivial, so $M$ is invertible.\end{proof}
+Recall that since $A$ has full row rank its columns which span $\RR^m$, and this is not changed by scaling each column by a nonzero value, so $AX_k$ also has full row rank.  But then $A X_k^2 A^\top = (AX_k) (AX_k)^\top$ is invertible, so $\Delta \tau=0$.  Then also $\Delta x=0$, so the null space is trivial and the matrix is invertible.\end{proof}
+
+The quirky article by Strang \cite{Strang1987} expands on the importance of matrices $A D^2 A^\top$ where $D$ is an invertible diagonal matrix and $A$ has full row rank.
 
 \end{document}
 
