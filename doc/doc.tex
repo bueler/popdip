@@ -462,6 +462,14 @@ Perhaps surprisingly, given that a positive-definite leading block has disappear
 
 When one measures the conditioning of $M$ in practice, it actually holds steady as $\mu_k\to 0$.  This is something I do not see how to prove.
 
+Finally, regarding application of POPDIP to LP problems, one might ask how POPDIP does on the famously-worst-case-for-simplex Klee-Minty cube example \cite[chapter 9]{GrivaNashSofer2009}.  The answer for now is ``not any better than simplex.''  Compare the results of the \href{https://github.com/bueler/popdip/blob/main/matlab/kleeminty.m}{\texttt{kleeminty.m}} example code to the result of
+
+\medskip
+\centerline{\href{https://bueler.github.io/opt/assets/codes/kleeminty.m}{\texttt{bueler.github.io/opt/assets/codes/kleeminty.m}}}
+
+\medskip
+\noindent which uses the simplex method.  Both seem to generate exponentially-increasing numbers of iterations as the dimension of the cube increases.
+
 
 \subsubsection*{Example 3.}
 
