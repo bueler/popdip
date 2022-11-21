@@ -29,7 +29,7 @@
 \maketitle
 
 \begin{abstract}
-The algorithm here is an example of the Newton-type primal-dual interior point algorithms in \cite[Algorithm 16.1, section 16.7]{GrivaNashSofer2009} and \cite{YamashitaYabe1996}.  It minimizes a smooth nonlinear function subject to the constraints that all the variables are nonnegative, plus linear equality constraints:
+The algorithm here is an example of the Newton-type primal-dual interior point algorithms presented in \cite[algorithm 16.1, section 16.7]{GrivaNashSofer2009}, \cite[chapter 19]{NocedalWright2006}, and \cite{YamashitaYabe1996}.  It minimizes a smooth nonlinear function subject to the constraints that all the variables are nonnegative, plus linear equality constraints:
 \begin{equation}
 \begin{matrix}
 \text{minimize} \qquad   & f(x) \\
@@ -63,7 +63,9 @@ One can derive an interior point method by considering a logarithmic barrier fun
 \begin{equation}
 \beta_\mu(x) = f(x) - \mu \sum_{i=1}^n \ln x_i \label{eq:posbarrierfunction}
 \end{equation}
-Let $\{e_1,\dots,e_n\}$ be the standard basis of $\RR^n$.  The first-order necessary condition for the \emph{unconstrained} problem of minimizing $\beta_\mu$, namely $\grad \beta_\mu(x)=0$ for $x \in S^\circ$, is
+Recalling that $\lim_{x\to 0^+} \ln x = -\infty$, this barrier imposes ``infinite cost'' to reaching the boundary of the feasible set $S$.
+
+Now let $\{e_1,\dots,e_n\}$ be the standard basis of $\RR^n$.  The first-order necessary condition for the \emph{unconstrained} problem of minimizing $\beta_\mu$, namely $\grad \beta_\mu(x)=0$ for $x \in S^\circ$, is
 \begin{equation}
 \grad f(x) - \mu \sum_{i=1}^n \frac{1}{x_i} e_i = 0 \label{eq:posfirstorderbarrier}
 \end{equation}
@@ -77,7 +79,7 @@ so that $\lambda\in\RR^n$.  Note that $\lambda>0$ if and only if $x>0$ because $
 x &\ge 0 \notag \\
 \lambda &\ge 0 \notag
 \end{align}
-The feasible set for $x$ and for $\lambda$ is the same, namely $S \subset \RR^n$.   (By contrast, for a general primal-dual interior point method, specifically Algorithm 16.1 in \cite[section 16.7]{GrivaNashSofer2009}, the feasible set for the primal variables $x$ is different from that of the dual variables $\lambda$.)  Because of the second condition in \eqref{eq:posfirstordersystem}, both $x$ and $\lambda$ are strictly positive and thus in the interior $S^\circ$.
+The feasible set for $x$ and for $\lambda$ is the same, namely $S \subset \RR^n$.   (By contrast, for a general primal-dual interior point method, specifically algorithm 16.1 in \cite[section 16.7]{GrivaNashSofer2009}, the feasible set for the primal variables $x$ is different from that of the dual variables $\lambda$.)  Because of the second condition in \eqref{eq:posfirstordersystem}, both $x$ and $\lambda$ are strictly positive and thus in the interior $S^\circ$.
 
 The first condition in \eqref{eq:posfirstordersystem} can be rewritten using a Lagrangian function for \eqref{eq:posproblem}:
 \begin{equation}
@@ -220,9 +222,9 @@ Separate step sizes $\alpha_x,\alpha_\tau,\alpha_\lambda$ are used for the three
 
 The quadratic convergence of a general primal-dual interior point method is proven in subsection 16.7.2 of \cite{GrivaNashSofer2009}.  That method replaces general inequality constraints $g_i(x)\ge 0$ by $g_i(x) - s_i =0$, with slack variables $s_i\ge 0$.  However, in our case this replacement says $x_i-s_i=0$ and $s_i\ge 0$, clearly unneeded as it simply renames existing primal variables $x$.
 
-Also, the back-tracking globalization of the inequality constraints described in Algorithm 16.1 of \cite{GrivaNashSofer2009}, choosing $\alpha_x$ from $\{1,1/2,1/4,\dots\}$ so that $g_i(x_k + \alpha_x \Delta x) > 0$ for all $i$, is not needed to maintain feasibility of our primal variables because of the linearity of all of the constraint functions in \eqref{eq:problem}.  That is, for constraints $Ax=b$ and $x\ge 0$ a ratio test for $\Delta x$ will guarantee primal feasibility, as also holds in the simplex method \cite[chapter 5]{GrivaNashSofer2009}.
+Also, the back-tracking globalization of the inequality constraints described in algorithm 16.1 of \cite{GrivaNashSofer2009}, choosing $\alpha_x$ from $\{1,1/2,1/4,\dots\}$ so that $g_i(x_k + \alpha_x \Delta x) > 0$ for all $i$, is not needed to maintain feasibility of our primal variables because of the linearity of all of the constraint functions in \eqref{eq:problem}.  That is, for constraints $Ax=b$ and $x\ge 0$ a ratio test for $\Delta x$ will guarantee primal feasibility, as also holds in the simplex method \cite[chapter 5]{GrivaNashSofer2009}.
 
-On the other hand, just like in Algorithm 16.1 in \cite{GrivaNashSofer2009}, our optimization algorithm shortens the step in the Newton search direction \emph{only} because of the inequality constraints, and not for the ``usual'' (unconstrained) line search reasons, for instance to generate sufficient decrease by an Armijo or Wolfe rule \cite[section 11.5]{GrivaNashSofer2009}.  In this sense our method is most suitable for quadratic functions $f(x)$, and it may need additional refinements for more general, especially non-convex, objective functions.  It should be used with caution if the Hessian $\grad^2 f(x)$ varies significantly during the iteration.
+On the other hand, just like in algorithm 16.1 in \cite{GrivaNashSofer2009}, our optimization algorithm shortens the step in the Newton search direction \emph{only} because of the inequality constraints, and not for the ``usual'' (unconstrained) line search reasons, for instance to generate sufficient decrease by an Armijo or Wolfe rule \cite[section 11.5]{GrivaNashSofer2009}.  In this sense our method is most suitable for quadratic functions $f(x)$, and it may need additional refinements for more general, especially non-convex, objective functions.  It should be used with caution if the Hessian $\grad^2 f(x)$ varies significantly during the iteration.
 
 POPDIP determines step sizes $\alpha_x,\alpha_\lambda$ for the inequality-constrained primal and dual variables via a condition of (strict) positivity for $x_{k+1}$ and $\lambda_{k+1}$.  Suppose $0<\kappa<1$.  For the primal variables, assuming $x_k\in S^o$ so that $x_k>0$, we require that for all $i$ such that $(\Delta x)_i < 0$,
 \begin{equation}
@@ -242,12 +244,12 @@ The optimality test in POPDIP requires that a certain merit function associated 
 \end{equation}
 This function is fundamentally the same as in section 16.7 of \cite{GrivaNashSofer2009}, but adapted to our problem.  (Recall that we expect $\|b-Ax_k\|=0$ to good accuracy after the initial step.)  Note that in the limit $\mu_k\to 0$ we have $\nu(x_*,\tau_*,\lambda_*) = 0$ for the exact solution of \eqref{eq:equalities}.  On the other hand, for some $\mu_k > 0$ the exact solution of \eqref{eq:equalities} would give a value $\nu(x_*,\tau_*,\lambda_*)=\sqrt{n}\, \mu_k>0$.
 
-Subsection 16.7.2 of \cite{GrivaNashSofer2009} describes how Algorithm 16.1 should be modified so that, by Theorem 16.17, the algorithm will exhibit the local quadratic convergence.  The Theorem requires a specific scheme for $\mu_k$, and a specific choice for $\kappa$ in ratio tests \eqref{eq:ratiotests}.  In our case these are the equations
+Subsection 16.7.2 of \cite{GrivaNashSofer2009} describes how algorithm 16.1 should be modified so that, by theorem 16.17, the algorithm will exhibit the local quadratic convergence.  The Theorem requires a specific scheme for $\mu_k$, and a specific choice for $\kappa$ in ratio tests \eqref{eq:ratiotests}.  In our case these are the equations
 \begin{align}
 \mu_k &= \min\{\theta \nu(x_k,\tau_k,\lambda_k),\nu(x_k,\tau_k,\lambda_k)^2\}, \label{eq:muupdate} \\
 \kappa &= \max\{\bar\kappa,1-\nu(x_k,\tau_k,\lambda_k)\}, \label{eq:kappaformula}
 \end{align}
-for parameters $0<\theta<1$ and $0<\bar\kappa<1$.  We choose the default values of the parameters as $\theta=0.1$ and $\bar\kappa=0.9$, based on the minimal hints in Example 16.16 in \cite{GrivaNashSofer2009}.
+for parameters $0<\theta<1$ and $0<\bar\kappa<1$.  We choose the default values of the parameters as $\theta=0.1$ and $\bar\kappa=0.9$, based on the minimal hints in example 16.16 in \cite{GrivaNashSofer2009}.
 
 The method by which the initial dual variables are determined (below) is a somewhat ad hoc construction for which I have no reference, but compare \cite{Gertzetal2004}.
 
@@ -504,40 +506,43 @@ Hessian matrix
 \end{bmatrix}
 \end{equation}
 
+%\subsubsection*{Example 4.}
+%FIXME Application to glacier problem.  Note a primal-dual interior point method for a glacier problem appears in \cite{Calvoetal2003}
+
+
 \subsection*{Possible improvements}
 
 FIXME
-
-We may consider possible improvements of our algorithm.  First, in Algorithm 16.1 the computation of the Newton search direction is followed by separate line searches in $x$ and in $\lambda$.  These line searches only maintain nonnegativity and they do not seek sufficient decrease of $f(x)$; they only use ratio tests.  Secondly, equation \eqref{eq:newtonstep} can be symmetrized by multiplying the second half of the equations by $-\Lambda^{-1}$:
+\begin{itemize}
+\item add sufficient-decrease-type line search \cite[sections 19.3, 19.4]{NocedalWright2006} and the modified back-tracking line searches in \cite{BensonMunson2006}
+\item Equations \eqref{eq:newtonstep} can be symmetrized by multiplying the third row by $-\Lambda_k^{-1}$:
 \begin{equation}
 \begin{bmatrix}
-\grad^2 f(x) & - I \\
--I & - \Lambda^{-1} X
+\grad^2 f(x) & -A^\top & - I \\
+-A & 0 & 0 \\
+-I & 0 & - \Lambda_k^{-1} X_k
 \end{bmatrix}
 \begin{bmatrix}
 \Delta x \\
-\Delta \lambda
+\Delta\tau \\
+\Delta\lambda
 \end{bmatrix}
 =
 \begin{bmatrix}
--\grad f(x) + \lambda \\
-x - \mu_k \Lambda^{-1} e
+-\grad f(x_k) + A^\top \tau_k + \lambda_k \\
+A x_k - b \\
+x_k - \mu_k \Lambda_k^{-1} e
 \end{bmatrix}
  \label{eq:symmnewtonstep}
 \end{equation}
+This change allows application of symmetric linear solver techniques like Cholesky and MINRES \cite{Bueler2021}, but it also introduces the unbounded values $\lambda_k/x_k = \mu_k/x_k^2 \to +\infty$ into the calculation.  See \cite[section 19.3]{NocedalWright2006}.
+\item reduce dimension of Newton step equations \cite[section 14.2]{NocedalWright2006}
+\item scalable linear algebra
+\item predictor-corrector structure \cite[section 14.2]{NocedalWright2006}
+\item adjust Hessian block to always be positive definite \cite[section 11.4]{GrivaNashSofer2009}
+\item apply quasi-Newton idea to approximate Hessian block \cite[sections 12.3, 13.5]{GrivaNashSofer2009} and \cite[section 19.3]{NocedalWright2006}
+\end{itemize}
 
-FIXME further simplify into system of $n$ equations for $\lambda$ only
-
-These facts suggests two possible changes:
-\begin{enumerate}
-\item Back-tracking line search is appropriate as a globalization even for unconstrained optimization.  Thus there must be cases where it is appropriate for problem \eqref{eq:problem} as well.  Once the ratio tests are applied, further back-tracking could be used based on sufficient decrease.  Compare the modified back-tracking line searches in \cite{BensonMunson2006}.
-\item One can replace linear system \eqref{eq:newtonstep} with symmetrized system \eqref{eq:symmnewtonstep}.
-\end{enumerate}
-Determining if these are actual improvements would require testing which we have not done.
-
-
-%\subsection*{Application to example problem (\texttt{glacier}).}
-%FIXME a primal-dual interior point method for a glacier problem appears in \cite{Calvoetal2003}
 
 \medskip
 
