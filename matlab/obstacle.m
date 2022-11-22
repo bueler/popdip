@@ -7,7 +7,7 @@ function obstacle(n,rtol)
 % calls POPDIP, prints information about the run, and generates two figures.
 
     if nargin < 1,  n = 20;  end
-    if nargin < 2,  rtol = 1.0e-12;  end
+    if nargin < 2,  rtol = 1.0e-10;  end
 
     dx = 1/(n+1);
     x = dx:dx:1-dx;
