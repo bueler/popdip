@@ -99,13 +99,13 @@ function [xk,tauk,lamk,iteratelist,nulist,mulist] = popdip(...
             nulist = [nulist meritk];
         end
         if meritk < atol
-            break
+            return
         end
         if k == 1
             merit0 = meritk;
         else
             if meritk / merit0 < rtol
-                break
+                return
             end
         end
         % set up and solve Newton step equations
@@ -142,6 +142,8 @@ function [xk,tauk,lamk,iteratelist,nulist,mulist] = popdip(...
             mulist = [mulist mu];
         end
     end
+    warning('maxiters reached')
+    nulist = [nulist nan];
 end
 
     function z = merit(x,tau,lam,dfx,A,b)
