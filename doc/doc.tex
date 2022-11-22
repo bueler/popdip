@@ -489,7 +489,9 @@ Finally, regarding application of POPDIP to LP problems, one might ask how POPDI
 
 \subsubsection*{Example 3.}
 
-Next we consider an infinite-dimensional (continuum) optimization problem with positivity constraints.  Our problem is
+Next we consider a continuum (infinite-dimensional) optimization problem with positivity constraints.  The discretized problem has arbitrary size $n$, but otherwise the problem is like Example 1, that is, it is a quadratic optimization with only positivity constraints.
+
+The continuum problem is an \emph{obstacle problem} \cite[chapter 12]{Bueler2021},
 \begin{equation}
 \begin{matrix}
 \text{minimize} \qquad & f(u) \\
@@ -498,36 +500,40 @@ Next we consider an infinite-dimensional (continuum) optimization problem with p
 \end{equation}
 where
 \begin{equation}
-    f(u) = \int_0^1 \frac{1}{2} u'(x)^2 - q(x) u(x)\,dx, \label{eq:obstaclefcn}
+    f(u) = \int_0^1 \frac{1}{2} u'(x)^2 - q(x) u(x)\,dx. \label{eq:obstaclefcn}
 \end{equation}
-over functions $u(x)$ with one well-defined derivative, on the interval $0\le x \le 1$, with a continuous source function $q(x)$ which is sometimes negative and sometimes positive.  When $q(x)>0$ then FIXME
+The admissible functions $u(x)$ in \eqref{eq:obstacleproblem} must be continuous and have one well-defined (i.e.~$L^2$) derivative on the interval $0\le x \le 1$.  Furthermore we assume boundary conditions $u(0)=u(1)=0$.
 
-FIXME obstacle problem in 1D: \href{https://github.com/bueler/popdip/blob/main/matlab/obstacle.m}{\texttt{obstacle.m}}
+If $y=u(x)$ gives the height of a taught string, which is pinned at the ends, then we may interpret $\frac{1}{2} u'(x)^2$ as elastic energy; it becomes larger as there are more bends in the graph $y=u(x)$.  The continuous source function $q(x)$ is then an external upward/downward force on the string.  Functions $q(x)$ are of most interest if they are sometimes negative and sometimes positive.  When $q(x)\le 0$ everywhere then one may show that $u(x)\equiv 0$ is the global minimizer, while if $q(x) > 0$ anywhere and $q(x)\ge 0$ everywhere then one may also show that $u(x)>0$ on the whole open interval $(0,1)$, so the inequality constraint is nowhere active.
 
-$\Delta x = 1 / (n+1)$
+The discretization replaces $u(x)$ by piecewise-linear functions, continuous functions which are linear between the points of a pre-determined grid on $[0,1]$.  (This scheme is a basic finite element approach \cite{Elmanetal2014}, but it is also a finite difference scheme \cite{LeVeque2007}.)  Let $x_i$ be points $x_0 = 0 < x_1 < x_2 < \dots < x_n < x_{n+1}=1$, but equally-spaced for simplicity.  Then $\Delta x = 1 / (n+1)$ is the spacing and we have $x_i = i\Delta x$.  Only the interior points are locations of variables in the optimization problem, so the primal variables are $u = (u_1,\dots,u_n)^\top \in \RR^n$ where $u_i=u(x_i)$.
+
+Now we approximate the objective function \eqref{eq:obstaclefcn} using the midpoint numerical integration rule.  In the interval $(x_i,x_{i+1})$ the slope of $u(x)$ is $(u_{i+1}-u_i)/\Delta x$, and the midpoint value is $u(x_{i+1/2}) = (u_i + u_{i+1})/2$.  Also we assume $q(x)$ is given by a formula, and we evaluate it at the midpoints.  The discrete object is, therefore,
 \begin{equation}
-    f(u) = \Delta x \sum_{i=0}^n \left(\frac{1}{2} \left(\frac{u_{i+1}-u_i}{\Delta x}\right)^2 - q(x_{i+1/2}) \frac{u_i + u_{i+1}}{2}\right) \label{obstacleobjective}
+    f_n(u) = \frac{\Delta x}{2} \sum_{i=0}^n \left(\left(\frac{u_{i+1}-u_i}{\Delta x}\right)^2 - q(x_{i+1/2}) (u_i + u_{i+1})\right) \label{eq:discobstaclefcn}
 \end{equation}
-where $u_0=0$ and $u_{n+1}=0$ when they appear
-
-gradient components for $i=1,\dots,n$
+where the endpoint values are $u_0=0$ and $u_{n+1}=0$ when they appear.  (These are notational conveniences and not actual variables.)  It follows that the gradient is
 \begin{equation}
-\grad f(u)_i = \frac{1}{\Delta x} \left\{\begin{matrix}
+\left(\grad f_n(u)\right)_i = \frac{1}{\Delta x} \left\{\begin{matrix}
 2 u_1 - u_2 & (i=1) \\
 -u_{i-1} + 2 u_i - u_{i+1} & (1<i<n) \\
 -u_{n-1} + 2 u_n & (i=n) \\
 \end{matrix} \right\} - \frac{\Delta x}{2} (q(x_{i-1/2}) + q(x_{i+1/2}))
 \end{equation}
-
-Hessian matrix
+for $i=1,\dots,n$.  Since the objective function is quadratic, the Hessian matrix is constant.  It is of a form which is well-known to be positive-definite \cite{LeVeque2007}:
 \begin{equation}
-\grad^2 f(u) = \frac{1}{\Delta x} \begin{bmatrix}
+\grad^2 f_n(u) = \frac{1}{\Delta x} \begin{bmatrix}
 2  & -1 &    &    \\
 -1 &  2 & -1 &    \\
    &    & \ddots &\\
    &    & -1 &  2
 \end{bmatrix}
 \end{equation}
+
+FIXME exact solution
+
+These formulas are put in a short driver program \href{https://github.com/bueler/popdip/blob/main/matlab/obstacle.m}{\texttt{obstacle.m}}.  It runs POPDIP with initial iterate $u_0=1$.  Parameters are \texttt{rtol} $=10^{-10}$ and \texttt{theta} $=0.001$, otherwise using the default parameters.  FIXME results are shown in the figures below
+
 
 %\subsubsection*{Example 4.}
 %FIXME Application to glacier problem.  Note a primal-dual interior point method for a glacier problem appears in \cite{Calvoetal2003}
