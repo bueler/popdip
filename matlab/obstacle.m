@@ -17,7 +17,7 @@ function obstacle(n,rtol)
 
     % solve using a faster-shrinking barrier: theta=0.001
     theta = 0.001;
-    [uk,_,lamk,iterlist,nuklist,muklist] = popdip(u0,@obstaclefcn,[],[],rtol,1.0e-50,1000,theta);
+    [uk,_,lamk,iterlist,nuklist,muklist] = popdip(u0,@obstaclefcn,[],[],rtol,1.0e-50,100,theta);
 
     % print run info
     N = size(iterlist,2);
@@ -34,7 +34,7 @@ function obstacle(n,rtol)
 
     % print summary and error norm
     uex = uexact(x)';
-    fprintf('%d iterations with n=%d: ||u-uexact|| = %.3e\n',...
+    fprintf('%d iterations with n=%d: ||u-uexact||_inf = %.3e\n',...
             size(iterlist,2),n,norm(uk-uex,'inf'))
 
     % plot iterates
@@ -47,11 +47,12 @@ function obstacle(n,rtol)
     title('iterates in black, numerical solution in red')
 
     % plot exact solution and final iterate
-    figure(2)
+    figure(2), clf
     subplot(3,1,1:2)
     xf = 0:.001:1;
     plot(x,uk,'r'),  hold on,  plot(xf,uexact(xf),'b')
-    ylabel('solutions'),  title('numerical in red, exact in blue'),  grid on
+    ylabel('solutions'),  grid on
+    title('numerical solution in red, exact solution in blue')
     subplot(3,1,3)
     plot(x,abs(uk' - uexact(x)),'k')
     xlabel x,  ylabel('numerical error'),  grid on
