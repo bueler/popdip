@@ -59,9 +59,9 @@ function obstacle(n,rtol)
 end
 
     function uu = uexact(x)
-        a = 0.224437973369461;  % solve  sin(2 pi a) = 0.7 (2 pi a)
-        C2 = (1/(2*pi)^2) * cos(pi*(1+2*a)) - (0.7/2) * (a + 0.5) * (a - 0.5);
-        uu = -(1/(2*pi)^2) * cos(2*pi*x) + (0.7/2) * x .* (x - 1) + C2;
-        uu(abs(x-0.5) >= a) = 0;
-        uu = 100 * uu;
+        alf = 0.275562026630539;  % solves:  sin(2 pi alf)/(2 pi) + 0.7 (alf - 0.5)
+        C = 100 * (cos(2*pi*alf) / (2*pi)^2 - (0.7/2) * alf * (alf - 1));
+        uu = 100 * (-cos(2*pi*x) / (2*pi)^2 + (0.7/2) * x .* (x - 1)) + C;
+        uu(x <= alf) = 0;
+        uu(x >= 1-alf) = 0;
     end
