@@ -10,7 +10,11 @@ function small(x0,rtol)
 
     [xk,_,lamk,iterlist,nuklist,muklist] = popdip(x0,@smallfcn,[],[],rtol);
 
-    N = size(iterlist,2);  x1 = iterlist(1,:);  x2 = iterlist(2,:);
+    N = size(iterlist,2);
+    x1 = iterlist(1,:);  x2 = iterlist(2,:);
+    lam1 = iterlist(3,:);  lam2 = iterlist(4,:);
+
+    % print primal iterates, merif function values, and barrier parameters
     fprintf('        x_1                  x_2                  nu_k                 mu_k\n');
     for k = 1:N
         if k == 1
@@ -22,9 +26,13 @@ function small(x0,rtol)
         end
     end
 
+    % primal iterates in figure 1, dual in figure 2
     figure(1),  clf,  plot(x1,x2,'-ko')
     axis([0 1.1*max(x1) 0 1.1*max(x2)]),  grid on
     xlabel('x_1','fontsize',20),  ylabel('x_2','fontsize',20)
+    figure(2),  clf,  plot(lam1,lam2,'-ko')
+    axis([0 1.1*max(lam1) 0 1.1*max(lam2)]),  grid on
+    xlabel('\lambda_1','fontsize',20),  ylabel('\lambda_2','fontsize',20)
 end
 
     function [f,df,Hf] = smallfcn(x)
