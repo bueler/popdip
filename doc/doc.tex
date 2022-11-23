@@ -489,7 +489,7 @@ Finally, regarding application of POPDIP to LP problems, one might ask how POPDI
 
 \subsubsection*{Example 3.}
 
-Next we consider a continuum (infinite-dimensional) optimization problem with positivity constraints.  The discretized problem has arbitrary size $n$, but otherwise the problem is like Example 1, that is, it is a quadratic optimization with only positivity constraints.
+Next we consider a continuum (infinite-dimensional) optimization problem with positivity constraints.  The discretized problem has arbitrary size $n$, but otherwise the problem is like Example 1, a quadratic optimization with only positivity constraints.
 
 The continuum problem is an \emph{obstacle problem} \cite[chapter 12]{Bueler2021},
 \begin{equation}
@@ -504,15 +504,21 @@ where
 \end{equation}
 The admissible functions $u(x)$ in \eqref{eq:obstacleproblem} must be continuous and have one well-defined (i.e.~$L^2$) derivative on the interval $0\le x \le 1$.  Furthermore we assume boundary conditions $u(0)=u(1)=0$.
 
-If $y=u(x)$ gives the height of a taught string, which is pinned at the ends, then we may interpret $\frac{1}{2} u'(x)^2$ as elastic energy; it becomes larger as there are more bends in the graph $y=u(x)$.  The continuous source function $q(x)$ is then an external upward/downward force on the string.  Functions $q(x)$ are of most interest if they are sometimes negative and sometimes positive.  When $q(x)\le 0$ everywhere then one may show that $u(x)\equiv 0$ is the global minimizer, while if $q(x) > 0$ anywhere and $q(x)\ge 0$ everywhere then one may also show that $u(x)>0$ on the whole open interval $(0,1)$, so the inequality constraint is nowhere active.
+If $y=u(x)$ gives the height of a taught string, which is pinned at the ends, then we may interpret $\frac{1}{2} u'(x)^2$ in \eqref{eq:obstaclefcn} as elastic energy; it becomes larger as there are more bends in the graph $y=u(x)$.  In this context the continuous source function $q(x)$ is an external upward/downward force on the string.  The reason \eqref{eq:obstacleproblem} is called an ``obstacle'' problem \cite{KinderlehrerStampacchia1980} is that the zero function, the obstacle in this case, stops the solution from going further down even if negative values of $q(x)$ would force it down: $u(x)\ge 0$.
 
-The discretization replaces $u(x)$ by piecewise-linear functions, continuous functions which are linear between the points of a pre-determined grid on $[0,1]$.  (This scheme is a basic finite element approach \cite{Elmanetal2014}, but it is also a finite difference scheme \cite{LeVeque2007}.)  Let $x_i$ be points $x_0 = 0 < x_1 < x_2 < \dots < x_n < x_{n+1}=1$, but equally-spaced for simplicity.  Then $\Delta x = 1 / (n+1)$ is the spacing and we have $x_i = i\Delta x$.  Only the interior points are locations of variables in the optimization problem, so the primal variables are $u = (u_1,\dots,u_n)^\top \in \RR^n$ where $u_i=u(x_i)$.
+Source functions $q(x)$ which are sometimes negative and sometimes positive are of greatest interest because they generate a free boundary at points $x=\alpha$ where $u(\alpha)=0$ and $u'(\alpha)=0$, but $u(x)$ is positive on one side of $\alpha$.  (See the derivation of the exact solution \eqref{eq:obstacleexactsolution} below for a particular case.)  When $q(x)\le 0$ everywhere then one may show that $u(x)\equiv 0$ is the global minimizer, while if $q(x)\ge 0$ everywhere and $q(x) > 0$ at any one point then one may also show that $u(x)>0$ on the whole open interval $(0,1)$, so the inequality constraint is nowhere active.
 
-Now we approximate the objective function \eqref{eq:obstaclefcn} using the midpoint numerical integration rule.  In the interval $(x_i,x_{i+1})$ the slope of $u(x)$ is $(u_{i+1}-u_i)/\Delta x$, and the midpoint value is $u(x_{i+1/2}) = (u_i + u_{i+1})/2$.  Also we assume $q(x)$ is given by a formula, and we evaluate it at the midpoints.  The discrete object is, therefore,
+The discretization replaces $u(x)$ by continuous and piecewise-linear functions.  These functions are linear between the points of a pre-determined grid on $[0,1]$, and so our discretization scheme is a basic finite element approach \cite{Elmanetal2014}.\footnote{But it can also be interpreted as finite differences \cite{LeVeque2007}.}  Let $x_i$ be points $x_0 = 0 < x_1 < x_2 < \dots < x_n < x_{n+1}=1$, but equally-spaced for simplicity.  Then $\Delta x = 1 / (n+1)$ is the spacing and we have $x_i = i\Delta x$.  Only the interior grid points are locations of (primal) variables in the optimization problem \eqref{eq:obstacleproblem}: $u = (u_1,\dots,u_n)^\top \in \RR^n$ where $u_i=u(x_i)$.
+
+Now we approximate the objective function \eqref{eq:obstaclefcn} using the midpoint numerical integration rule.  In the interval $(x_i,x_{i+1})$ the slope of $u(x)$ is $(u_{i+1}-u_i)/\Delta x$, and also the midpoint value of $u(x)$ is $u(x_{i+1/2}) = (u_i + u_{i+1})/2$.  Also we assume $q(x)$ is given by a formula which we may evaluate at will.  The discrete objective function is, therefore,
 \begin{equation}
     f_n(u) = \frac{\Delta x}{2} \sum_{i=0}^n \left(\left(\frac{u_{i+1}-u_i}{\Delta x}\right)^2 - q(x_{i+1/2}) (u_i + u_{i+1})\right) \label{eq:discobstaclefcn}
 \end{equation}
-where the endpoint values are $u_0=0$ and $u_{n+1}=0$ when they appear.  (These are notational conveniences and not actual variables.)  It follows that the gradient is
+where the endpoint values are $u_0=0$ and $u_{n+1}=0$ when they appear.  (These are notational conveniences and not actual variables.)
+
+Observe that \eqref{eq:discobstaclefcn} is actually a whole class of example objective functions.  For each dimension $n=1,2,3,\dots$ there is a finite-dimensional optimization problem derived from the continuum problem \eqref{eq:obstacleproblem}.
+
+It follows from \eqref{eq:discobstaclefcn} that the gradient of $f_n(u)$ is
 \begin{equation}
 \left(\grad f_n(u)\right)_i = \frac{1}{\Delta x} \left\{\begin{matrix}
 2 u_1 - u_2 & (i=1) \\
@@ -520,7 +526,7 @@ where the endpoint values are $u_0=0$ and $u_{n+1}=0$ when they appear.  (These 
 -u_{n-1} + 2 u_n & (i=n) \\
 \end{matrix} \right\} - \frac{\Delta x}{2} (q(x_{i-1/2}) + q(x_{i+1/2}))
 \end{equation}
-for $i=1,\dots,n$.  Since the objective function is quadratic, the Hessian matrix is constant.  It is of a form which is well-known to be positive-definite \cite{LeVeque2007}:
+for $i=1,\dots,n$.  Since the objective function is quadratic, its Hessian is a constant matrix.  It is of a form which is well-known to be positive-definite \cite{LeVeque2007}:
 \begin{equation}
 \grad^2 f_n(u) = \frac{1}{\Delta x} \begin{bmatrix}
 2  & -1 &    &    \\
@@ -530,10 +536,57 @@ for $i=1,\dots,n$.  Since the objective function is quadratic, the Hessian matri
 \end{bmatrix}
 \end{equation}
 
-FIXME exact solution
+\newcommand{\uex}{u_{\text{exact}}}
+To test the implementation we will find an exact solution $\uex(x)$ to the continuum problem.  This solution will not be an exact solution to any of the discrete problems, so for no $n$ will we know the exact minimizer $u_* \in \RR^n$ of $f_n(u)$.  However, because our discretization is convergent \cite{Elmanetal2014,LeVeque2007}, the values of the finite-dimensional minimizer $(u_*)_i$ should be close to the grid values $\uex(x_i)$ for large $n$.  Then, when we solve the $f_n(u)$ optimization problem accurately, our numerical minimizer $u\in\RR^n$ should be close to $u_*\in\RR^n$, and thus also close to $\uex(x)$.  In any case, we will measure the total numerical error, the norm of the grid point errors $|u_i - \uex(x_i)|$.
 
-These formulas are put in a short driver program \href{https://github.com/bueler/popdip/blob/main/matlab/obstacle.m}{\texttt{obstacle.m}}.  It runs POPDIP with initial iterate $u_0=1$.  Parameters are \texttt{rtol} $=10^{-10}$ and \texttt{theta} $=0.001$, otherwise using the default parameters.  FIXME results are shown in the figures below
+The continuum exact solution $\uex(x)$ solves \eqref{eq:obstacleproblem} for $q(x) = -100 (\cos(2\pi x) + 0.7)$; this source function is shown in the left plot below.  The details of this $q(x)$ are not special except that $q(x)$ is only positive on a small interval around $x=0.5$, specifically on $(0.3734,0.6266)$.  The exact solution $\uex(x)$ is found by observing that the (strong form) NCP form of problem \eqref{eq:obstacleproblem} is
+\begin{equation}
+u(x) \ge 0, \qquad - u''(x) - q(x) \ge 0, \qquad u(x) (- u''(x) - q(x)) = 0.  \label{eq:obstaclencp}
+\end{equation}
+The solution to \eqref{eq:obstacleproblem} and \eqref{eq:obstaclencp} is symmetric around $x=0.5$ because $q(x)$ is symmetric around that point.  A free boundary \cite{KinderlehrerStampacchia1980} will arise at a location $0<\alpha<0.5$ where $u(\alpha)=0$ and $u'(\alpha)=0$.  Combining these facts gives the formula\footnote{In summary, this nonobvious calculation starts from $u''=-q$, and integrates once, with the constant set from symmetry $u'(0.5)=0$.  Then use $u'(\alpha)=0$ to determine $\alpha$ by solving a transcendental equation $\sin(2\pi \alpha)/(2 \pi) + 0.7 (\alpha - 0.5)=0$; use Newton's method!  Then integrate again to find $u(x)$, and use $u(\alpha)=0$ to set the constant.  The result is \eqref{eq:obstacleexactsolution}.}
+\begin{equation}
+\uex(x) = \begin{cases} 0, & 0 \le x \le \alpha \\
+                        100 \left(\frac{\cos(2\pi\alpha) - \cos(2\pi x)}{(2\pi)^2} - \frac{0.7}{2} (\alpha (\alpha-1) - x (x-1))\right), & \alpha < x < 1-\alpha \\
+                        0, & 1-\alpha \le x \le 1. \end{cases}  \label{eq:obstacleexactsolution}
+\end{equation}
+Here $\alpha=0.275562026630539$ gives the exact (i.e.~very accurate) location $x=\alpha$ of the free boundary on the interval $0<x<0.5$, and there is a matching free boundary on $0.5<x<1$, namely at $1-\alpha$, by symmetry.
 
+\medskip
+\noindent \mbox{\includegraphics[width=0.47\textwidth]{figs/qobstacle.pdf} \qquad
+\includegraphics[width=0.47\textwidth]{figs/uexactobstacle.pdf}}
+
+The exact solution is plotted in the right figure.  Note that the set on which $\uex(x)= 0$, i.e.~where the constraint is active, is a subset of the set on which $q(x)<0$ where there is a downward force on the string.  Finding the free boundary, i.e.~$x=\alpha$ in this case, where the string first meets the obstacle, is often the goal of a numerical analysis of this kind of problem.
+
+Formula \eqref{eq:obstacleexactsolution} appears in the short driver program \href{https://github.com/bueler/popdip/blob/main/matlab/obstacle.m}{\texttt{obstacle.m}} so that the numerical error can be measured at the end.  It calls POPDIP with initial iterate $(u_0)_i=1$, and parameters \texttt{rtol} $=10^{-12}$ and \texttt{theta} $=0.001$, otherwise using the defaults.  The user-supplied objective function $f_n(u)$ \eqref{eq:obstaclefcn}, and the gradient, Hessian, and the formula for $q(x)$, all appear in the function \href{https://github.com/bueler/popdip/blob/main/matlab/obstaclefcn.m}{\texttt{obstaclefcn.m}}, the handle of which is also passed to POPDIP.
+
+By default \href{https://github.com/bueler/popdip/blob/main/matlab/obstacle.m}{\texttt{obstacle.m}} uses $n=25$ interior grid points.  The values of the merit function $\nu_k$ from POPDIP, and of the dynamically-adjusted barrier parameters $\mu_k$, suggest strongly superlinear convergence similar to previous Examples:
+\begin{Verbatim}[fontsize=\footnotesize]
+>> obstacle
+        nu_k                 mu_k
+  0:   42.668104033897947
+  1:    5.652366439731654    0.042668104033898
+  2:    1.582225195585537    0.005652366439732
+  3:    0.405205172171047    0.001582225195586
+  4:    0.244137215303266    0.000405205172171
+  5:    0.201522593604293    0.000244137215303
+  6:    0.107490917285153    0.000201522593604
+  7:    0.029115141695205    0.000107490917285
+  8:    0.000205231703144    0.000029115141695
+  9:    0.000017959316470    0.000000042120052
+ 10:    0.000000001669991    0.000000000322537
+ 11:    0.000000000000004    0.000000000000000
+12 iterations with n=25: ||u-uexact||_inf = 6.557e-03
+\end{Verbatim}
+
+The final numerical error norm $\|u-\uex\|_\infty = 6.557 \times 10^{-3}$ shows that $u\in\RR^{25}$ is close to the continuum exact solution at the grid points.  On the other hand, our tolerance \texttt{rtol} $=10^{-12}$ has made $u$ \emph{much} closer to the constrained optimum of $f_{25}(u)$.  That is, most of the numerical error is discretization error, which we can only reduce by choosing larger $n$.\footnote{Or by choosing a different discretization scheme.  One might want to use a spectral method, but it will not work easily for obstacle problems!}
+
+The run also produces the figures below.  Note that the initial iterate (left figure) is far from the correct solution, and indeed the merit function value $\nu_k$ stagnates for a while before entering the region of superlinear convergence.  In the right figure note that the numerical error jumps up from zero abruptly at the free boundary.  This is a location where $\uex(x)$ has a discontinuous second derivative, and thus there is no way for a piecewise-linear function to do a good job of approximating it.
+
+\medskip
+\noindent \mbox{\includegraphics[width=0.45\textwidth]{figs/iteratesobstacle.pdf} \qquad
+\includegraphics[width=0.5\textwidth]{figs/errorobstacle.pdf}}
+
+The reader should experiment with larger $n$ values.  The numerical error can be reduced by an order of magnitude by two grid-doubling refinements to $n=100$.  However, beyond that the POPDIP algorithm is not so well-behaved, and significantly lower numerical error is hard to achieve.  The reasons are not all clear to me even though I have been working with problems like this for a while \cite{Bueler2016}.
 
 %\subsubsection*{Example 4.}
 %FIXME Application to glacier problem.  Note a primal-dual interior point method for a glacier problem appears in \cite{Calvoetal2003}

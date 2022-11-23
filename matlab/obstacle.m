@@ -6,14 +6,14 @@ function obstacle(n,rtol)
 % The quadratic function f(u) is given in OBSTACLEFCN.  This driver program
 % calls POPDIP, prints information about the run, and generates two figures.
 
-    if nargin < 1,  n = 20;  end
-    if nargin < 2,  rtol = 1.0e-10;  end
+    if nargin < 1,  n = 25;  end
+    if nargin < 2,  rtol = 1.0e-12;  end
 
     dx = 1/(n+1);
     x = dx:dx:1-dx;
 
     % initial iterate is strictly feasible
-    u0 = 0.1 * ones(n,1);
+    u0 = ones(n,1);
 
     % solve using a faster-shrinking barrier: theta=0.001
     theta = 0.001;
@@ -43,7 +43,7 @@ function obstacle(n,rtol)
     for j = 1:K-1
         plot(x,iterlist(1:n,j),'k'), hold on
     end
-    plot(x,uk,'r'),  xlabel x,  grid on
+    plot(x,uk,'r'),  xlabel x,  grid on,  axis tight
     title('iterates in black, numerical solution in red')
 
     % plot exact solution and final iterate
@@ -54,8 +54,23 @@ function obstacle(n,rtol)
     ylabel('solutions'),  grid on
     title('numerical solution in red, exact solution in blue')
     subplot(3,1,3)
-    plot(x,abs(uk' - uexact(x)),'k')
+    plot(x,abs(uk' - uexact(x)),'ko')
     xlabel x,  ylabel('numerical error'),  grid on
+
+    % optionally plot q(x)
+    if false   % toggle to generate plot
+        q = @(x) - 100 * (cos(2*pi*x) + 0.7);
+        figure(3), clf
+        plot(xf,q(xf),'k')
+        xlabel x,  ylabel('q(x)'),  grid on,  axis tight
+    end
+
+    % optionally plot uex(x) by itself
+    if false   % toggle to generate plot
+        figure(4), clf
+        plot(xf,uexact(xf),'k')
+        xlabel x,  ylabel('u_{exact}(x)'),  grid on,  axis tight
+    end
 end
 
     function uu = uexact(x)
