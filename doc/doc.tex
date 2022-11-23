@@ -8,7 +8,7 @@
 
 \renewcommand{\baselinestretch}{1.06}
 
-\usepackage{fancyvrb,xspace}
+\usepackage{wrapfig,fancyvrb,xspace}
 \usepackage{palatino,amsmath,amssymb,amsthm}
 \usepackage[final]{graphicx}
 \usepackage[pdftex, colorlinks=true, plainpages=false, linkcolor=blue, citecolor=red, urlcolor=blue]{hyperref}
@@ -29,7 +29,7 @@
 \maketitle
 
 \begin{abstract}
-The algorithm here is an example of the Newton-type primal-dual interior point algorithms presented in \cite[algorithm 16.1, section 16.7]{GrivaNashSofer2009}, \cite[chapter 19]{NocedalWright2006}, and \cite{YamashitaYabe1996}.  It minimizes a smooth nonlinear function subject to the constraints that all the variables are nonnegative, plus linear equality constraints:
+The algorithm here is an example of the Newton-type primal-dual interior point algorithms presented in \cite[section 16.7]{GrivaNashSofer2009}, \cite[chapter 19]{NocedalWright2006}, and \cite{YamashitaYabe1996}.  It minimizes a smooth nonlinear function subject to the constraints that all the variables are nonnegative, plus linear equality constraints:
 \begin{equation}
 \begin{matrix}
 \text{minimize} \qquad   & f(x) \\
@@ -38,9 +38,9 @@ The algorithm here is an example of the Newton-type primal-dual interior point a
 \end{matrix} \label{eq:problem}
 \end{equation}
 
-This is a specialized algorithm for nonnegativity constraints $x\ge 0$, and it is not suitable for general inequality constraints of the form ``$g_i(x)\ge 0$.''  Nor is it suitable for general equality constraints ``$g_i(x)=0$.''  However, it can be used as an interior-point method for linear programming in the case where $f(x)=c^\top x$, though it has no special performance improvements for that case.
+This is a specialized algorithm for nonnegativity constraints $x\ge 0$, and it is not suitable for general inequality constraints of the form ``$g_i(x)\ge 0$.''  Nor is it suitable for general equality constraints ``$g_i(x)=0$.''  However, it can be used as an interior-point method for linear programming in the case where $f(x)=c^\top x$, thus \eqref{eq:problem} is in standard form, though it has no special performance improvements for that case.
 
-These short notes are \emph{not} research.  I simply implement a special case of a well-known algorithm.  Furthermore ``POPDIP'' is a name I made up; it is not in common use.  However, I am interested in this class of methods because local quadratic convergence, seen in unconstrained Newton algorithms, can be proven.  This property is much harder to achieve for constrained problems.
+These short notes are \emph{not} research.  I simply implement a case of a well-known algorithm.  Furthermore ``POPDIP'' is a name I made up; it is not in common use.  I am interested in the class of interior point methods because local quadratic convergence can be proven.
 \end{abstract}
 
 \thispagestyle{empty}
@@ -55,11 +55,11 @@ First consider a nonlinear optimization problem with only nonnegativity (informa
 \text{subject to} \qquad & x \ge 0
 \end{matrix} \label{eq:posproblem}
 \end{equation}
-As usual, ``$x\ge 0$'' in \eqref{eq:posproblem} means that each entry of $x\in\RR^n$ is nonnegative.  The feasible set for \eqref{eq:posproblem} is the convex and closed set $S = \{x\in \RR^n\,:\,x\ge 0\}$, with interior $S^\circ = \{x\in \RR^n\,:\,x > 0\}$, and $f:S \to \RR$ is a continuous and smooth function.
+As usual, $x\ge 0$ in \eqref{eq:posproblem} means that each entry of $x\in\RR^n$ is nonnegative.  The feasible set for \eqref{eq:posproblem} is the convex and closed set $S = \{x\in \RR^n\,:\,x\ge 0\}$, with interior $S^\circ = \{x\in \RR^n\,:\,x > 0\}$, and $f:S \to \RR$ is assumed to be a continuous and smooth function.
 
 The next section will address the general problem \eqref{eq:problem} including linear equality constraints.
 
-One can derive an interior point method by considering a logarithmic barrier function \cite[section 16.2]{GrivaNashSofer2009}.  Let $\mu>0$ be a (temporarily) fixed constant.  If $x\in S^\circ$ then the following function is well-defined:
+One can derive an interior point method for \eqref{eq:posproblem} by considering a logarithmic barrier function \cite[section 16.2]{GrivaNashSofer2009}.  Let $\mu>0$ be a (temporarily) fixed constant.  If $x\in S^\circ$ then the following function is well-defined:
 \begin{equation}
 \beta_\mu(x) = f(x) - \mu \sum_{i=1}^n \ln x_i \label{eq:posbarrierfunction}
 \end{equation}
@@ -79,13 +79,13 @@ so that $\lambda\in\RR^n$.  Note that $\lambda>0$ if and only if $x>0$ because $
 x &\ge 0 \notag \\
 \lambda &\ge 0 \notag
 \end{align}
-The feasible set for $x$ and for $\lambda$ is the same, namely $S \subset \RR^n$.   (By contrast, for a general primal-dual interior point method, specifically algorithm 16.1 in \cite[section 16.7]{GrivaNashSofer2009}, the feasible set for the primal variables $x$ is different from that of the dual variables $\lambda$.)  Because of the second condition in \eqref{eq:posfirstordersystem}, both $x$ and $\lambda$ are strictly positive and thus in the interior $S^\circ$.
+The feasible set for $x$ and for $\lambda$ is the same, namely $S \subset \RR^n$.   (By contrast, for the general problem \eqref{eq:problem}, the feasible set for the primal variables $x$ is different from that of the dual variables $\lambda$.)  Because of the second condition in \eqref{eq:posfirstordersystem}, based on constant $\mu>0$, both $x$ and $\lambda$ are strictly positive and thus in the interior $S^\circ$.
 
 The first condition in \eqref{eq:posfirstordersystem} can be rewritten using a Lagrangian function for \eqref{eq:posproblem}:
 \begin{equation}
 \mathcal{L}(x,\lambda) = f(x) - \sum_{i=1}^n \lambda_i x_i.  \label{eq:poslagrangian}
 \end{equation}
-Now \eqref{eq:posfirstordersystem} states that $\grad_x \mathcal{L}(x,\lambda)=0$.  In fact, the KKT conditions \cite[sections 14.4, 14.5]{GrivaNashSofer2009} of \eqref{eq:posproblem} are nearly the same as \eqref{eq:posfirstordersystem} but with the second equation replaced by complementarity,
+Now \eqref{eq:posfirstordersystem} states that $\grad_x \mathcal{L}(x,\lambda)=0$.  In fact, the first-order KKT conditions \cite[sections 14.4, 14.5]{GrivaNashSofer2009} of \eqref{eq:posproblem} are nearly the same as \eqref{eq:posfirstordersystem} but with the second equation replaced by complementarity,
 \begin{align}
 \grad f(x) - \lambda &= 0 \label{eq:poskkt} \\
 \lambda_i x_i &= 0, \qquad i=1,\dots,n \notag \\
@@ -93,7 +93,7 @@ x &\ge 0 \notag \\
 \lambda &\ge 0 \notag
 \end{align}
 
-Thus the barrier method which generated system \eqref{eq:posfirstordersystem} modifies KKT conditions \eqref{eq:poskkt} by changing complementary slackness condition into a nonzero connection between the primal and dual variables, in which their product is set to a positive constant.  System \eqref{eq:posfirstordersystem} describes a solution which is interior to the feasible set, and thus is different from the solution to \eqref{eq:poskkt}.
+Thus the barrier method which generated system \eqref{eq:posfirstordersystem} modifies KKT conditions \eqref{eq:poskkt} by changing the complementary slackness condition into a nonzero connection between the primal and dual variables, with their product is set to a positive constant.  System \eqref{eq:posfirstordersystem} describes a primal and dual $(x,\lambda)$ solution which is interior to the feasible set, and different from the solution to \eqref{eq:poskkt}.
 
 The first condition in \eqref{eq:poskkt} allows $\lambda$ to be eliminated if desired: $\lambda = \grad f(x)$.  Writing the KKT conditions without these dual variables gives a \emph{nonlinear complementarity problem} (NCP) \cite{FacchineiPang2007},
 \begin{equation}
@@ -103,12 +103,12 @@ Thus we may regard POPDIP as solving the $\mu$-modified NCP
 \begin{equation}
 x \ge 0, \qquad \grad f(x) \ge 0, \qquad x_i (\grad f(x))_i = \mu. \label{eq:mumodifiedncp}
 \end{equation}
-However, the method achieves quadratic convergence substantially because it updates primal and dual variables separately.  Stating the algorithm or the original KKT conditions as an NCP, thereby suppressing the dual variables, is not beneficial.  Note that such NCP formulations also appear in problems which are not optimizations, rather variational inequalities, including in a glaciological case upon which I am focussed \cite{Bueler2016}.
+However, the method achieves quadratic convergence substantially because it updates primal and dual variables separately.  Stating the algorithm or the original KKT conditions as an NCP, thereby suppressing the dual variables, is not beneficial to solver performance.  On the other hand, such NCP formulations also appear in problems which are not optimizations, rather variational inequalities, including in a glaciological case upon which I am focussed \cite{Bueler2016}.
 
 
 \subsection*{General problem}
 
-Suppose from now on that $f:\RR^n \to \RR$ is twice continuously-differentiable.  Let $A\in\RR^{m\times n}$, $m\le n$, be a full rank matrix, and suppose $b\in\RR^m$.  The POPDIP algorithm solves general problems of form \eqref{eq:problem} in the abstract, restated here:
+Suppose from now on that $f:\RR^n \to \RR$ is twice continuously-differentiable.  Let $A\in\RR^{m\times n}$, $m\le n$, be a full rank matrix, and suppose $b\in\RR^m$.  The POPDIP algorithm solves general problems of form \eqref{eq:problem} given in the abstract and restated here:
 \begin{equation}
 \begin{matrix}
 \text{minimize} \qquad   & f(x) \\
@@ -133,7 +133,9 @@ Consider the following Lagrangian for \eqref{eq:problem}:
 \begin{equation}
 \mathcal{L}(x,\tau,\lambda) = f(x) - \tau^\top (Ax - b) - \lambda^\top x, \label{eq:lagrangian}
 \end{equation}
-for multipliers $\tau\in\RR^m$ and $\lambda\in \RR^n$.  Function \eqref{eq:lagrangian} reduces to \eqref{eq:poslagrangian} if there are $m=0$ linear equality constraints (so $\tau$ is absent).  The first-order necessary conditions, the KKT conditions, for \eqref{eq:problem} are given by $\grad_x\mathcal{L}=0$ and $\grad_\tau\mathcal{L}=0$, plus complementarity for the primal variables $x$ and dual variables $\lambda$:
+for multipliers $\tau\in\RR^m$ and $\lambda\in \RR^n$.  Function \eqref{eq:lagrangian} reduces to \eqref{eq:poslagrangian} if there are $m=0$ linear equality constraints (so $\tau$ is absent).
+
+The first-order necessary conditions, the KKT conditions, for \eqref{eq:problem} are given by $\grad_x\mathcal{L}=0$ and $\grad_\tau\mathcal{L}=0$, plus complementarity for the primal variables $x$ and dual variables $\lambda$:
 \begin{align}
 \grad f(x) - A^\top \tau - \lambda &= 0 \label{eq:kkt} \\
 -A x + b &= 0 \notag \\
@@ -141,7 +143,7 @@ for multipliers $\tau\in\RR^m$ and $\lambda\in \RR^n$.  Function \eqref{eq:lagra
 x &\ge 0 \notag \\
 \lambda &\ge 0 \notag
 \end{align}
-Conditions \eqref{eq:kkt} reduce to system \eqref{eq:poskkt} given in the Introduction when there are $m=0$ linear equality constraints.
+Conditions \eqref{eq:kkt} reduce to system \eqref{eq:poskkt} given in the Introduction when there are $m=0$ linear equality constraints.  Note that the dual feasible set $T=\{\lambda \ge 0\}\subset \RR^n$ is generally different from, and larger than, the primal feasible set $S$.
 
 
 \subsection*{Algorithm design}
@@ -150,7 +152,7 @@ The POPDIP algorithm solves \eqref{eq:problem} by applying a Newton method to a 
 \begin{equation}
 \lambda_i x_i = \mu_k, \qquad i=1,\dots,n \notag \\
 \end{equation}
-for a (scalar) barrier sequence $\{\mu_k>0\}$ which will to zero.  Thus POPDIP computes primal and dual iterates in the interior: $x,\lambda \in S^o$.  However, if the method converges as $\mu_k \to 0$ then the limiting values of $x$ and $\lambda$ solve the KKT conditions \eqref{eq:kkt}.  Though the algorithm is terminated after a finite number of steps, in examples the KKT system is solved to high accuracy.
+for a (scalar) barrier sequence $\{\mu_k>0\}$ which will go to zero.  Thus POPDIP computes primal and dual iterates in the interiors: $x \in S^o$, $\lambda \in T^o$.  However, if the method converges as $\mu_k \to 0$ then the limiting values of $x$ and $\lambda$ solve the KKT conditions \eqref{eq:kkt}.  Though the algorithm is terminated after a finite number of steps, in examples the KKT system is solved to high accuracy.
 
 Each step of the algorithm is a Newton step for the modified equalities from \eqref{eq:kkt}, namely
 \begin{align}
@@ -189,15 +191,15 @@ A x_k - b \\
 \mu_k e - \Lambda_k x_k
 \end{bmatrix}. \label{eq:unreducednewtonstep}
 \end{equation}
-Here $I$ is the $n\times n$ identity matrix, $e=(1,1,\dots,1)^\top \in \RR^n$, and we have defined $n\times n$ diagonal matrices from the primal/dual vectors $x,\lambda\in\RR^n$:
+Here $I$ is the $n\times n$ identity matrix, $e=(1,1,\dots,1)^\top \in \RR^n$, and we have defined $n\times n$ diagonal matrices from the primal/dual vectors $x,\lambda\in\RR^n$ as follows:
     $$X = \begin{bmatrix} x_1 & & \\ & \ddots & \\ & & x_n \end{bmatrix}, \qquad \Lambda = \begin{bmatrix} \lambda_1 & & \\ & \ddots & \\ & & \lambda_n \end{bmatrix}.$$
 Note that $\Lambda x = X \lambda$ in this notation.\footnote{The product $\Lambda x = X\lambda$ is simply \, \texttt{x.*lambda}\, in \Matlab.}
 
 Linear system \eqref{eq:unreducednewtonstep} can also be written as
 \begin{equation}
-M p = - r \label{eq:overallnewtonstep}
+M_k p = - r_k \label{eq:overallnewtonstep}
 \end{equation}
-where $M$ is the $(2n+m) \times (2n+m)$ square, sparse \emph{system matrix} on the left side of \eqref{eq:unreducednewtonstep} and $r=r_k(x_k,\tau_k,\lambda_k) \in \RR^{2n+m}$ is the residual of system \eqref{eq:equalities} for the current iterate, using the \emph{residual function}
+where $M_k$ is the $(2n+m) \times (2n+m)$ square and sparse \emph{system matrix} on the left side of \eqref{eq:unreducednewtonstep} and $r_k=r_k(x_k,\tau_k,\lambda_k) \in \RR^{2n+m}$ is the residual of system \eqref{eq:equalities} for the current iterate.  That is, for a given $\mu_k>0$ we may consider the \emph{residual function}
 \begin{equation}
 r_k(x,\tau,\lambda) = \begin{bmatrix}
 \grad f(x) - A^\top \tau - \lambda \\
@@ -206,12 +208,12 @@ r_k(x,\tau,\lambda) = \begin{bmatrix}
 \end{bmatrix}. \label{eq:residualnewtonstep}
 \end{equation}
 
-In fact, system \eqref{eq:unreducednewtonstep}, or \eqref{eq:overallnewtonstep}, can be made immediately smaller by noting that the diagonal matrix $X_k$ is invertible, because $x_k>0$ strictly in \eqref{eq:equalities}.  Thus the last row of system \eqref{eq:unreducednewtonstep} can be solved for $\Delta\lambda$ in terms of $\Delta x$:
+In fact, system \eqref{eq:unreducednewtonstep}, or \eqref{eq:overallnewtonstep}, can be made smaller by noting that the diagonal matrix $X_k$ is invertible, because $x_k>0$ strictly in \eqref{eq:equalities}.  Thus the last row of system \eqref{eq:unreducednewtonstep} can be solved for $\Delta\lambda$ in terms of $\Delta x$:
 \begin{equation}
 \Lambda_k\Delta x + X_k\Delta \lambda = \mu_k e - \Lambda_k x_k \quad \iff \quad
 \Delta\lambda = \mu_k X_k^{-1} e - \lambda_k - X_k^{-1} \Lambda_k \Delta x \label{eq:solvefordlam}
 \end{equation}
-Thus we will actually solve the smaller system
+Instead of \eqref{eq:unreducednewtonstep} we will actually solve the smaller, \emph{symmetric} system
 \begin{equation}
 \begin{bmatrix}
 \grad^2 f(x_k) + X_k^{-1}\Lambda_k & -A^\top \\
@@ -231,12 +233,15 @@ for $\Delta x,\Delta\tau$, and then complete the Newton step computation by assi
 \begin{equation}
 \Delta\lambda = \mu_k X_k^{-1} e - \lambda_k - X_k^{-1} \Lambda_k \Delta x. \label{eq:newtonsteplam}
 \end{equation}
+The Appendix gives a proof that the matrix in \eqref{eq:newtonstep} is invertible.
 
-We will solve system \eqref{eq:newtonstep} using direct linear algebra, via Matlab's default ``$\backslash$'' linear solver.  Because this direct solver is quite accurate, the residual norm $\|b-A x_k\|$, part of the right-hand side of \eqref{eq:newtonstep}, will be very small.  In this sense, system \eqref{eq:newtonstep} imposes the classical null-space requirement on the search direction for linear equality constraints \cite[chapter 3]{GrivaNashSofer2009}:
+We will solve system \eqref{eq:newtonstep} using direct linear algebra, via Matlab's default ``$\backslash$'' linear solver.  Because this direct solver is quite accurate, the residual norm $\|b-A x_k\|$, part of the right-hand side of \eqref{eq:newtonstep}, will be very small.  In this sense, system \eqref{eq:newtonstep} imposes the classical null-space requirement on the (primal) search direction for linear equality constraints \cite[chapter 3]{GrivaNashSofer2009}:
 \begin{equation}
 A \Delta x = 0.  \label{eq:dxnull}
 \end{equation}
-On the other hand, use of a direct solver means the implementation is not scalable to large problem sizes.  A scalable implementation would not assemble the full matrix $M$ in \eqref{eq:newtonstep}, and it might use an iterative solver, along the way exploiting the sparse block structure of $M$ including the symmetry of its upper-left $2\times 2$ block.  Preconditioners \cite{Bueler2021} for the upper-left block, and then for the equality-constraint Schur complement \cite[chapters 14]{Bueler2021}, should be considered.
+Note there is no equivalent linear restriction on $\Delta\lambda$; if $\lambda_k\in T^o$ then $\Delta\lambda$ can be anything.
+
+On the other hand, use of a direct solver means the implementation is not scalable to large problem sizes.  A scalable implementation would not assemble the full matrix in \eqref{eq:newtonstep}, and it might use an iterative solver, along the way exploiting the block structure.  Preconditioners \cite{Bueler2021} for the upper-left block, and then for the equality-constraint Schur complement \cite[chapters 14]{Bueler2021}, should be considered.
 
 Given a solution $(\Delta x,\Delta\tau,\Delta\lambda)$ of \eqref{eq:newtonstep} and \eqref{eq:newtonsteplam}, the update formulas are
 \begin{align}
@@ -248,9 +253,9 @@ Separate step sizes $\alpha_x,\alpha_\tau,\alpha_\lambda$ are used for the three
 
 The quadratic convergence of a general primal-dual interior point method is proven in subsection 16.7.2 of \cite{GrivaNashSofer2009}.  That method replaces general inequality constraints $g_i(x)\ge 0$ by $g_i(x) - s_i =0$, with slack variables $s_i\ge 0$.  However, in our case this replacement says $x_i-s_i=0$ and $s_i\ge 0$, clearly unneeded as it simply renames existing primal variables $x$.
 
-Also, the back-tracking globalization of the inequality constraints described in algorithm 16.1 of \cite{GrivaNashSofer2009}, choosing $\alpha_x$ from $\{1,1/2,1/4,\dots\}$ so that $g_i(x_k + \alpha_x \Delta x) > 0$ for all $i$, is not needed to maintain feasibility of our primal variables because of the linearity of all of the constraint functions in \eqref{eq:problem}.  That is, for constraints $Ax=b$ and $x\ge 0$ a ratio test for $\Delta x$ will guarantee primal feasibility, as also holds in the simplex method \cite[chapter 5]{GrivaNashSofer2009}.
+Also, the back-tracking globalization of the inequality constraints described in algorithm 16.1 of \cite{GrivaNashSofer2009}, choosing $\alpha_x$ from $\{1,1/2,1/4,\dots\}$ so that $g_i(x_k + \alpha_x \Delta x) > 0$, is not needed to maintain primal feasibility because of the linearity of the constraint functions in \eqref{eq:problem}.  That is, for constraints $Ax=b$ and $x\ge 0$ a ratio test for $\Delta x$ will guarantee primal feasibility, as also holds in the simplex method \cite[chapter 5]{GrivaNashSofer2009}.
 
-On the other hand, just like in algorithm 16.1 in \cite{GrivaNashSofer2009}, our optimization algorithm shortens the step in the Newton search direction \emph{only} because of the inequality constraints, and not for the ``usual'' (unconstrained) line search reasons, for instance to generate sufficient decrease by an Armijo or Wolfe rule \cite[section 11.5]{GrivaNashSofer2009}.  In this sense our method is most suitable for quadratic functions $f(x)$, and it may need additional refinements for more general, especially non-convex, objective functions.  It should be used with caution if the Hessian $\grad^2 f(x)$ varies significantly during the iteration.
+POPDIP will shorten the step in the Newton search direction \emph{only} because of the inequality constraints, and not for the ``usual'' (unconstrained) line search reasons, for instance to generate sufficient decrease of $f$ by an Armijo or Wolfe rule \cite[section 11.5]{GrivaNashSofer2009}.  In this sense our method is most suitable for quadratic functions $f$, and it may need additional refinements for more general, especially non-convex, objective functions.  It should be used with caution if the Hessian $\grad^2 f(x)$ varies significantly during the iteration.
 
 POPDIP determines step sizes $\alpha_x,\alpha_\lambda$ for the inequality-constrained primal and dual variables via a condition of (strict) positivity for $x_{k+1}$ and $\lambda_{k+1}$.  Suppose $0<\kappa<1$.  For the primal variables, assuming $x_k\in S^o$ so that $x_k>0$, we require that for all $i$ such that $(\Delta x)_i < 0$,
 \begin{equation}
@@ -268,9 +273,9 @@ The optimality test in POPDIP requires that a certain merit function associated 
 \begin{equation}
     \nu(x,\tau,\lambda) = \max\{\|\grad f(x)-A^\top \tau - \lambda\|_2,\|b-Ax\|_2,\|\Lambda x\|_2\}.  \label{eq:meritfunction}
 \end{equation}
-This function is fundamentally the same as in section 16.7 of \cite{GrivaNashSofer2009}, but adapted to our problem.  (Recall that we expect $\|b-Ax_k\|=0$ to good accuracy after the initial step.)  Note that in the limit $\mu_k\to 0$ we have $\nu(x_*,\tau_*,\lambda_*) = 0$ for the exact solution of \eqref{eq:equalities}.  On the other hand, for some $\mu_k > 0$ the exact solution of \eqref{eq:equalities} would give a value $\nu(x_*,\tau_*,\lambda_*)=\sqrt{n}\, \mu_k>0$.
+This function is fundamentally the same as in section 16.7 of \cite{GrivaNashSofer2009}, but adapted to our problem.  (Recall that we expect $\|b-Ax_k\|=0$ to good accuracy.)  Note that in the limit $\mu_k\to 0$ we have $\nu(x_*,\tau_*,\lambda_*) = 0$ for the exact solution of \eqref{eq:equalities}.  On the other hand, for particular $\mu_k > 0$ the exact solution of \eqref{eq:equalities} yields $\nu(x_*,\tau_*,\lambda_*)=\sqrt{n}\, \mu_k>0$.
 
-Subsection 16.7.2 of \cite{GrivaNashSofer2009} describes how algorithm 16.1 should be modified so that, by theorem 16.17, the algorithm will exhibit the local quadratic convergence.  The Theorem requires a specific scheme for $\mu_k$, and a specific choice for $\kappa$ in ratio tests \eqref{eq:ratiotests}.  In our case these are the equations
+Theorem 16.17 in \cite{GrivaNashSofer2009} describes how algorithm 16.1 should be modified so that the algorithm will exhibit the local quadratic convergence.  The Theorem requires a specific scheme for $\mu_k$, and a specific choice for $\kappa$ in ratio tests \eqref{eq:ratiotests}.  In our case these are the equations
 \begin{align}
 \mu_k &= \min\{\theta \nu(x_k,\tau_k,\lambda_k),\nu(x_k,\tau_k,\lambda_k)^2\}, \label{eq:muupdate} \\
 \kappa &= \max\{\bar\kappa,1-\nu(x_k,\tau_k,\lambda_k)\}, \label{eq:kappaformula}
@@ -331,18 +336,14 @@ A x_k - b
     \item evaluate $\Delta\Lambda$:
     $$\Delta\lambda = \mu_k X_k^{-1} e - \lambda_k - X_k^{-1} \Lambda_k \Delta x$$
     \item evaluate ratio test parameter: $\kappa = \max\{\bar\kappa,1-\nu_k\}$
-    \item apply ratio tests for step sizes, to keep $x_{k+1},\lambda_{k+1}$ positive:
+    \item apply ratio tests to find step sizes which keep $x_{k+1},\lambda_{k+1}$ positive:
 \begin{align*}
 \alpha_x &= \min_{1\le i\le n} \left\{1, \,-\kappa \frac{(x_k)_i}{(\Delta x)_i} \,:\, (\Delta x)_i < 0\right\} \\
 \alpha_\tau &= 1 \\
 \alpha_\lambda &= \min_{1\le i\le n} \left\{1, \,-\kappa \frac{(\lambda_k)_i}{(\Delta \lambda)_i} \,:\, (\Delta \lambda)_i < 0\right\}
 \end{align*}
     \item update to the next iterate:
-\begin{align*}
-x_{k+1} &= x_k + \alpha_x \Delta x \\
-\tau_{k+1} &= x_k + \alpha_\tau \Delta x \\
-\lambda_{k+1} &= \lambda_k + \alpha_\lambda \Delta \lambda
-\end{align*}
+   $$x_{k+1} = x_k + \alpha_x \Delta x, \qquad \tau_{k+1} = x_k + \alpha_\tau \Delta x, \qquad \lambda_{k+1} = \lambda_k + \alpha_\lambda \Delta \lambda$$
     \end{enumerate}
 \end{itemize}
 \end{quote}
@@ -364,7 +365,7 @@ The POPDIP algorithm is implemented by a \Matlab code \href{https://github.com/b
 \medskip
 \noindent where \texttt{fx} $=f(x) \in\RR$ is the objective value, \texttt{dfx} $=\grad f(x) \in\RR^n$ is the gradient, and \texttt{Hfx} $= \grad^2 f(x) \in\RR^{n\times n}$ is the Hessian.
 
-For more control the POPDIP parameters can be set to non-default value as follows:
+For more control the POPDIP parameters can be set to non-default values as follows:
 
 \medskip
 \centerline{\texttt{popdip(x0,f,A,b,rtol,atol,maxiters,theta,kappabar)}}
@@ -376,7 +377,7 @@ For more control the POPDIP parameters can be set to non-default value as follow
 \centerline{\texttt{[x,tau,lam,iteratelist,nuklist,muklist] = popdip(\dots)}}
 
 \medskip
-\noindent If \texttt{iteratelist} is not requested then none of \texttt{iteratelist,nuklist,muklist} are saved.
+\noindent If \texttt{iteratelist} is not requested (\texttt{nargout<4}) then the \texttt{list}s are not stored.
 
 Download the \href{https://github.com/bueler/popdip/blob/main/matlab/popdip.m}{\texttt{popdip.m}} code, this documentation, and the example codes demonstrated in the next section, from the Github repository:\, \href{https://github.com/bueler/popdip}{\texttt{github.com/bueler/popdip}}.
 
@@ -385,14 +386,14 @@ Download the \href{https://github.com/bueler/popdip/blob/main/matlab/popdip.m}{\
 
 \subsubsection*{Example 1.}
 
-We first try a small 2D test problem in \href{https://github.com/bueler/popdip/blob/main/matlab/small.m}{\texttt{small.m}}, which is a positivity-constrained quadratic minimization:
+We first try a small 2D test problem in \href{https://github.com/bueler/popdip/blob/main/matlab/small.m}{\texttt{small.m}}, a positivity-constrained quadratic minimization:
 \begin{equation}
 \begin{matrix}
 \text{minimize} \qquad & f(x) = \frac{1}{2} (x_1-1)^2 + \frac{1}{2} (x_2+1)^2 \\
 \text{subject to} \qquad & x \ge 0
 \end{matrix} \label{eq:smallproblem}
 \end{equation}
-The unconstrained minimum is the infeasible point $\hat x =(1,-1)^\top$.  A sketch shows that the exact solution of the constrained problem is $x_*=(1,0)^\top$.
+The unconstrained minimum is the infeasible point $\hat x =(1,-1)^\top$.  A contour sketch shows that the exact solution of the constrained problem is $x_*=(1,0)^\top$.
 
 Running with the given initial iterate $x_0=(2,2)^\top$ and \texttt{rtol} $=10^{-14}$, and otherwise using the default parameters in POPDIP, gives strongly superlinear, and possibly quadratic, convergence:
 \begin{Verbatim}[fontsize=\footnotesize]
@@ -408,12 +409,10 @@ Running with the given initial iterate $x_0=(2,2)^\top$ and \texttt{rtol} $=10^{
   7:    1.000000000002257    0.000000000002257    0.000000000003192    0.000000000001505
   8:    1.000000000000000    0.000000000000000    0.000000000000000    0.000000000000000
 \end{Verbatim}
-Both the merit function values $\nu_k$ and the barrier parameters $\mu_k$ go rapidly to zero.  The iterates $x_k$ are graphed in the following figure.
+Both the merit function values $\nu_k$ and the barrier parameters $\mu_k$ go rapidly to zero.  The primal iterates $x_k$ are graphed in the left figure below, and the dual iterates $\lambda_k$ at right.  We see complementarity at the solution: $x_1 \lambda_1 = 0$ since $\lambda_1=0$ and $x_2\lambda_2=0$ since $x_2=0$.
 
 \bigskip
-\begin{center}
-\includegraphics[width=0.4\textwidth]{figs/small.pdf}
-\end{center}
+\mbox{\includegraphics[width=0.45\textwidth]{figs/small.pdf} \qquad \includegraphics[width=0.46\textwidth]{figs/smalldual.pdf}}
 
 
 \subsubsection*{Example 2.}
@@ -426,7 +425,16 @@ The next problem is an $n=5$ linear programming (LP) problem, in standard form, 
  & x \ge 0
 \end{matrix} \label{eq:linearproblem}
 \end{equation}
-where $\ds c = \begin{bmatrix} -1 & -2 & 0 & 0 & 0 \end{bmatrix}^\top$, $\ds A = \begin{bmatrix} -2 & 1 & 1 & 0 & 0 \\ -1 & 2 & 0 & 1 & 0 \\ 1 & 0 & 0 & 0 & 1 \end{bmatrix}$, and $\ds b = \begin{bmatrix} 2 & 7 & 3 \end{bmatrix}^\top$.  The same problem is solved by the simplex method in \cite[section 5.2]{GrivaNashSofer2009}, where the solution is found on the third iteration starting from the basic feasible solution $x=0$.  The above standard-form problem arises from the LP problem
+where $\ds c = \begin{bmatrix} -1 & -2 & 0 & 0 & 0 \end{bmatrix}^\top$, $\ds A = \begin{bmatrix} -2 & 1 & 1 & 0 & 0 \\ -1 & 2 & 0 & 1 & 0 \\ 1 & 0 & 0 & 0 & 1 \end{bmatrix}$, and $\ds b = \begin{bmatrix} 2 & 7 & 3 \end{bmatrix}^\top$.
+
+\begin{wrapfigure}[12]{r}{0.35\textwidth}
+\phantom{x} \hfill \includegraphics[width=0.3\textwidth]{figs/linear.pdf}
+\end{wrapfigure}
+
+\medskip
+This problem is solved by the simplex method in \cite[section 5.2]{GrivaNashSofer2009}.  Starting from $x=0$ the simplex method finds the solution on the third iteration.
+
+Standard-form problem \eqref{eq:linearproblem} arises from 2D LP problem
 \begin{equation}
 \begin{matrix}
 \text{minimize} \qquad & z = -x_1 - 2x_2 \\
@@ -436,14 +444,9 @@ where $\ds c = \begin{bmatrix} -1 & -2 & 0 & 0 & 0 \end{bmatrix}^\top$, $\ds A =
  & x_1, x_2 \ge 0
 \end{matrix} \label{eq:twodlp}
 \end{equation}
-This feasible set can be easily sketched; see the red outline in the figure below.
+This feasible set of \eqref{eq:twodlp} can be easily sketched (red outline).
 
-\medskip
-\begin{center}
-\includegraphics[width=0.3\textwidth]{figs/linear.pdf}
-\end{center}
-
-The standard-form LP problem is defined in a short driver program \href{https://github.com/bueler/popdip/blob/main/matlab/linear.m}{\texttt{linear.m}}.  It runs POPDIP with initial iterate $x_0=(1,1,1,1,1)^\top$ and \texttt{rtol} $=10^{-14}$, otherwise using the default parameters.  The result is strongly superlinear convergence similar to Example 1:
+Problem \eqref{eq:linearproblem} is defined in a short driver program \href{https://github.com/bueler/popdip/blob/main/matlab/linear.m}{\texttt{linear.m}}.  It runs POPDIP with initial iterate $x_0=(1,1,1,1,1)^\top$ and \texttt{rtol} $=10^{-14}$, otherwise using the default parameters.  The result is strongly superlinear convergence similar to Example 1:
 \begin{Verbatim}[fontsize=\footnotesize]
 >> linear
         x_1                  x_2                  nu_k                 mu_k
@@ -458,9 +461,9 @@ The standard-form LP problem is defined in a short driver program \href{https://
   8:    3.000000000000000    5.000000000000000    0.000000000000000    0.000000000000000
 \end{Verbatim}
 
-The 2D iterates $x_k$ are graphed in black above.  This looks like the ideal performance of an interior-point method on an LP problem.  Compare figure 5.1, chapter 10, and section 10.6 in \cite{GrivaNashSofer2009}.
+The 2D iterates $x_k$ are in black in the figure, apparently good performance of an interior-point method on an LP problem.  Compare figure 5.1, chapter 10, and section 10.6 in \cite{GrivaNashSofer2009}.
 
-It is worth considering the Newton step equations \eqref{eq:newtonstep} in this LP case.  Because the objective function $f(x) = c^\top x$ is linear, the gradient is constant and the Hessian is zero:
+It is worth considering the Newton step equations \eqref{eq:newtonstep} in this LP case.  Because the objective function $f(x) = c^\top x$ is linear, the gradient $\grad f=c$ is constant and the Hessian is zero, so \eqref{eq:newtonstep} becomes
 \begin{equation}
 \begin{bmatrix}
 X_k^{-1}\Lambda_k  & -A^\top \\
@@ -476,9 +479,9 @@ X_k^{-1}\Lambda_k  & -A^\top \\
 A x_k - b
 \end{bmatrix}. \label{eq:lpnewtonstep}
 \end{equation}
-The square system matrix on the left of \eqref{eq:lpnewtonstep} is invertible when $\mu_k>0$.  (This is proven in the Appendix.  One needs the facts that $A$ has full row rank and that $\mu_k\ne 0$.)  Thus it is okay that the \href{https://github.com/bueler/popdip/blob/main/matlab/linear.m}{\texttt{linear.m}} code supplies a zero Hessian.
+The square system matrix on the left of \eqref{eq:lpnewtonstep} is nontheless invertible when $\mu_k>0$.  (This is proven in the Appendix.  One only needs the facts that $A$ has full row rank and that $\mu_k\ne 0$.)  Thus it is okay that the \href{https://github.com/bueler/popdip/blob/main/matlab/linear.m}{\texttt{linear.m}} code supplies a zero Hessian.
 
-Finally, regarding application of POPDIP to LP problems, one might ask how POPDIP does on the famous worst-case-for-simplex Klee-Minty cube example \cite[chapter 9]{GrivaNashSofer2009}.  The answer for now is ``not any better than simplex''!   Presumably the parameters and details could be adjusted to improve the performance.  Compare the results of the \href{https://github.com/bueler/popdip/blob/main/matlab/kleeminty.m}{\texttt{kleeminty.m}} example code here to the result of
+Regarding application of POPDIP to LP problems, one might ask how it does on the famously-bad Klee-Minty cube example \cite[chapter 9]{GrivaNashSofer2009}.  The answer for now is ``not any better than simplex''!   Presumably the parameters and details could be adjusted to improve the performance.\footnote{See the discussion of following the central path in chapter 14 of \cite{NocedalWright2006}.}  In any case we can compare the results of the \href{https://github.com/bueler/popdip/blob/main/matlab/kleeminty.m}{\texttt{kleeminty.m}} example code here to the result of
 
 \medskip
 \centerline{\href{https://bueler.github.io/opt/assets/codes/kleeminty.m}{\texttt{bueler.github.io/opt/assets/codes/kleeminty.m}}}
@@ -489,7 +492,7 @@ Finally, regarding application of POPDIP to LP problems, one might ask how POPDI
 
 \subsubsection*{Example 3.}
 
-Next we consider a continuum (infinite-dimensional) optimization problem with positivity constraints.  The discretized problem has arbitrary size $n$, but otherwise the problem is like Example 1, a quadratic optimization with only positivity constraints.
+Next we consider a continuum (infinite-dimensional) optimization problem with positivity constraints.  The discretized problem has arbitrary size $n$, but otherwise the problem is like Example 1; it is a quadratic optimization with only positivity constraints.
 
 The continuum problem is an \emph{obstacle problem} \cite[chapter 12]{Bueler2021},
 \begin{equation}
@@ -504,21 +507,19 @@ where
 \end{equation}
 The admissible functions $u(x)$ in \eqref{eq:obstacleproblem} must be continuous and have one well-defined (i.e.~$L^2$) derivative on the interval $0\le x \le 1$.  Furthermore we assume boundary conditions $u(0)=u(1)=0$.
 
-If $y=u(x)$ gives the height of a taught string, which is pinned at the ends, then we may interpret $\frac{1}{2} u'(x)^2$ in \eqref{eq:obstaclefcn} as elastic energy; it becomes larger as there are more bends in the graph $y=u(x)$.  In this context the continuous source function $q(x)$ is an external upward/downward force on the string.  The reason \eqref{eq:obstacleproblem} is called an ``obstacle'' problem \cite{KinderlehrerStampacchia1980} is that the zero function, the obstacle in this case, stops the solution from going further down even if negative values of $q(x)$ would force it down: $u(x)\ge 0$.
+If $y=u(x)$ gives the height of a taught string which is pinned at the ends then we may interpret $\frac{1}{2} u'(x)^2$ in \eqref{eq:obstaclefcn} as its elastic energy.  This quantity becomes larger as there are more bends in the graph of $u(x)$.  In this context the continuous source function $q(x)$ is an external upward/downward force on the string.  The reason \eqref{eq:obstacleproblem} is called an ``obstacle'' problem \cite{KinderlehrerStampacchia1980} is that the zero function, the obstacle in this case, stops the solution from going further down even if negative values of $q(x)$ would force it down: $u(x)\ge 0$.
 
-Source functions $q(x)$ which are sometimes negative and sometimes positive are of greatest interest because they generate a free boundary at points $x=\alpha$ where $u(\alpha)=0$ and $u'(\alpha)=0$, but $u(x)$ is positive on one side of $\alpha$.  (See the derivation of the exact solution \eqref{eq:obstacleexactsolution} below for a particular case.)  When $q(x)\le 0$ everywhere then one may show that $u(x)\equiv 0$ is the global minimizer, while if $q(x)\ge 0$ everywhere and $q(x) > 0$ at any one point then one may also show that $u(x)>0$ on the whole open interval $(0,1)$, so the inequality constraint is nowhere active.
+Source functions $q(x)$ which are sometimes negative and sometimes positive are of greatest interest because they generate a free boundary at a point $x=\alpha$ where $u(\alpha)=0$ and $u'(\alpha)=0$, although $u(x)$ is positive on one side of $\alpha$.  (See the derivation of the exact solution \eqref{eq:obstacleexactsolution} below for a particular case.)  However, when $q(x)\le 0$ everywhere then one may show that $u(x)\equiv 0$ is the global minimizer.  On the other hand, if $q(x)\ge 0$ everywhere and $q(x) > 0$ at any one point then $u(x)>0$ on the whole open interval $(0,1)$, so the inequality constraint is nowhere active.
 
-The discretization replaces $u(x)$ by continuous and piecewise-linear functions.  These functions are linear between the points of a pre-determined grid on $[0,1]$, and so our discretization scheme is a basic finite element approach \cite{Elmanetal2014}.\footnote{But it can also be interpreted as finite differences \cite{LeVeque2007}.}  Let $x_i$ be points $x_0 = 0 < x_1 < x_2 < \dots < x_n < x_{n+1}=1$, but equally-spaced for simplicity.  Then $\Delta x = 1 / (n+1)$ is the spacing and we have $x_i = i\Delta x$.  Only the interior grid points are locations of (primal) variables in the optimization problem \eqref{eq:obstacleproblem}: $u = (u_1,\dots,u_n)^\top \in \RR^n$ where $u_i=u(x_i)$.
+The discretization replaces $u(x)$ by a continuous and piecewise-linear function.  These functions are linear between the points of a pre-determined grid on $[0,1]$, and our discretization scheme is a basic finite element approach \cite{Elmanetal2014}.\footnote{It can also be interpreted as finite differences \cite{LeVeque2007}.}  Let $x_i$ be points $x_0 = 0 < x_1 < x_2 < \dots < x_n < x_{n+1}=1$, but equally-spaced for simplicity.  Then $\Delta x = 1 / (n+1)$ is the spacing and we have $x_i = i\Delta x$.  Only the interior grid points are locations of (primal) variables in the optimization problem \eqref{eq:obstacleproblem}: $u = (u_1,\dots,u_n)^\top \in \RR^n$ where $u_i=u(x_i)$.
 
-Now we approximate the objective function \eqref{eq:obstaclefcn} using the midpoint numerical integration rule.  In the interval $(x_i,x_{i+1})$ the slope of $u(x)$ is $(u_{i+1}-u_i)/\Delta x$, and also the midpoint value of $u(x)$ is $u(x_{i+1/2}) = (u_i + u_{i+1})/2$.  Also we assume $q(x)$ is given by a formula which we may evaluate at will.  The discrete objective function is, therefore,
+Now we approximate the objective function \eqref{eq:obstaclefcn} using the midpoint numerical integration rule.  In the interval $(x_i,x_{i+1})$ the slope of $u(x)$ is $(u_{i+1}-u_i)/\Delta x$, and the midpoint value of $u(x)$ is $u(x_{i+1/2}) = (u_i + u_{i+1})/2$.  Also we assume $q(x)$ is given by a formula which we may evaluate at will.  The discrete objective function is, therefore,
 \begin{equation}
     f_n(u) = \frac{\Delta x}{2} \sum_{i=0}^n \left(\left(\frac{u_{i+1}-u_i}{\Delta x}\right)^2 - q(x_{i+1/2}) (u_i + u_{i+1})\right) \label{eq:discobstaclefcn}
 \end{equation}
-where the endpoint values are $u_0=0$ and $u_{n+1}=0$ when they appear.  (These are notational conveniences and not actual variables.)
+where the endpoint values are $u_0=0$ and $u_{n+1}=0$ when they appear.  (These are notational conveniences and not actual variables.)  Observe that \eqref{eq:discobstaclefcn} is actually a whole class of example objective functions.  For each dimension $n=1,2,3,\dots$ there is a finite-dimensional optimization problem derived from the continuum problem \eqref{eq:obstacleproblem}.
 
-Observe that \eqref{eq:discobstaclefcn} is actually a whole class of example objective functions.  For each dimension $n=1,2,3,\dots$ there is a finite-dimensional optimization problem derived from the continuum problem \eqref{eq:obstacleproblem}.
-
-It follows from \eqref{eq:discobstaclefcn} that the gradient of $f_n(u)$ is
+It follows that the gradient is
 \begin{equation}
 \left(\grad f_n(u)\right)_i = \frac{1}{\Delta x} \left\{\begin{matrix}
 2 u_1 - u_2 & (i=1) \\
@@ -526,7 +527,7 @@ It follows from \eqref{eq:discobstaclefcn} that the gradient of $f_n(u)$ is
 -u_{n-1} + 2 u_n & (i=n) \\
 \end{matrix} \right\} - \frac{\Delta x}{2} (q(x_{i-1/2}) + q(x_{i+1/2}))
 \end{equation}
-for $i=1,\dots,n$.  Since the objective function is quadratic, its Hessian is a constant matrix.  It is of a form which is well-known to be positive-definite \cite{LeVeque2007}:
+for $i=1,\dots,n$.  Since the objective function is quadratic, its Hessian is a constant matrix, of a form well-known to be positive-definite \cite{LeVeque2007}:
 \begin{equation}
 \grad^2 f_n(u) = \frac{1}{\Delta x} \begin{bmatrix}
 2  & -1 &    &    \\
@@ -537,29 +538,29 @@ for $i=1,\dots,n$.  Since the objective function is quadratic, its Hessian is a 
 \end{equation}
 
 \newcommand{\uex}{u_{\text{exact}}}
-To test the implementation we will find an exact solution $\uex(x)$ to the continuum problem.  This solution will not be an exact solution to any of the discrete problems, so for no $n$ will we know the exact minimizer $u_* \in \RR^n$ of $f_n(u)$.  However, because our discretization is convergent \cite{Elmanetal2014,LeVeque2007}, the values of the finite-dimensional minimizer $(u_*)_i$ should be close to the grid values $\uex(x_i)$ for large $n$.  Then, when we solve the $f_n(u)$ optimization problem accurately, our numerical minimizer $u\in\RR^n$ should be close to $u_*\in\RR^n$, and thus also close to $\uex(x)$.  In any case, we will measure the total numerical error, the norm of the grid point errors $|u_i - \uex(x_i)|$.
+To test the accuracy of the implementation we must find an exact solution $\uex(x)$ to the continuum problem.  This solution will not be an exact solution to any of the discrete problems, so for no $n$ will we know the exact minimizer $u_* \in \RR^n$ of $f_n(u)$.  However, because our discretization is convergent \cite{Elmanetal2014,LeVeque2007}, for large $n$ the finite-dimensional minimizer $u_*$ should be close to the grid values $\uex(x_i)$.  If we solve the $f_n(u)$ optimization problem accurately then our numerical minimizer $u\in\RR^n$ should be close to $u_*\in\RR^n$, and thus also close to $\uex(x)$.  In any case, we will measure the total numerical error, the norm of the grid point errors $|u_i - \uex(x_i)|$.
 
-The continuum exact solution $\uex(x)$ solves \eqref{eq:obstacleproblem} for $q(x) = -100 (\cos(2\pi x) + 0.7)$; this source function is shown in the left plot below.  The details of this $q(x)$ are not special except that $q(x)$ is only positive on a small interval around $x=0.5$, specifically on $(0.3734,0.6266)$.  The exact solution $\uex(x)$ is found by observing that the (strong form) NCP form of problem \eqref{eq:obstacleproblem} is
+The continuum exact solution $\uex(x)$ solves \eqref{eq:obstacleproblem} for $q(x) = -100 (\cos(2\pi x) + 0.7)$; this source function is shown in the left plot below.  The details of this $q(x)$ are not special except that $q(x)$ is positive on a small interval around $x=0.5$, specifically on $(0.3734,0.6266)$.  The exact solution $\uex(x)$ is found by observing that the (strong form) NCP form of problem \eqref{eq:obstacleproblem} is
 \begin{equation}
 u(x) \ge 0, \qquad - u''(x) - q(x) \ge 0, \qquad u(x) (- u''(x) - q(x)) = 0.  \label{eq:obstaclencp}
 \end{equation}
-The solution to \eqref{eq:obstacleproblem} and \eqref{eq:obstaclencp} is symmetric around $x=0.5$ because $q(x)$ is symmetric around that point.  A free boundary \cite{KinderlehrerStampacchia1980} will arise at a location $0<\alpha<0.5$ where $u(\alpha)=0$ and $u'(\alpha)=0$.  Combining these facts gives the formula\footnote{In summary, this nonobvious calculation starts from $u''=-q$, and integrates once, with the constant set from symmetry $u'(0.5)=0$.  Then use $u'(\alpha)=0$ to determine $\alpha$ by solving a transcendental equation $\sin(2\pi \alpha)/(2 \pi) + 0.7 (\alpha - 0.5)=0$; use Newton's method!  Then integrate again to find $u(x)$, and use $u(\alpha)=0$ to set the constant.  The result is \eqref{eq:obstacleexactsolution}.}
+The solution to \eqref{eq:obstacleproblem} and \eqref{eq:obstaclencp} is symmetric around $x=0.5$ because $q(x)$ is symmetric around that point.  A free boundary \cite{KinderlehrerStampacchia1980} will arise at a location $0<\alpha<0.5$ where $u(\alpha)=0$ and $u'(\alpha)=0$.  Combining these facts gives the formula\footnote{This is a nonobvious calculation.  In summary, one starts from $u''=-q$, and integrates once, setting the constant using symmetry $u'(0.5)=0$.  Then use $u'(\alpha)=0$ to determine $\alpha$ by solving a transcendental equation: $\sin(2\pi \alpha)/(2 \pi) + 0.7 (\alpha - 0.5)=0$.  (I used Newton's method to compute $\alpha$ to 15 digits.)  Then integrate again to find $u(x)$, and use $u(\alpha)=0$ to set the constant.  The result is \eqref{eq:obstacleexactsolution}.}
 \begin{equation}
 \uex(x) = \begin{cases} 0, & 0 \le x \le \alpha \\
                         100 \left(\frac{\cos(2\pi\alpha) - \cos(2\pi x)}{(2\pi)^2} - \frac{0.7}{2} (\alpha (\alpha-1) - x (x-1))\right), & \alpha < x < 1-\alpha \\
                         0, & 1-\alpha \le x \le 1. \end{cases}  \label{eq:obstacleexactsolution}
 \end{equation}
-Here $\alpha=0.275562026630539$ gives the exact (i.e.~very accurate) location $x=\alpha$ of the free boundary on the interval $0<x<0.5$, and there is a matching free boundary on $0.5<x<1$, namely at $1-\alpha$, by symmetry.
+Here $\alpha=0.275562026630539$ gives the exact (i.e.~very accurate) location $x=\alpha$ of the free boundary on the interval $0<x<0.5$.  By symmetry there is a matching free boundary on $0.5<x<1$, namely at $1-\alpha$.
 
 \medskip
 \noindent \mbox{\includegraphics[width=0.47\textwidth]{figs/qobstacle.pdf} \qquad
 \includegraphics[width=0.47\textwidth]{figs/uexactobstacle.pdf}}
 
-The exact solution is plotted in the right figure.  Note that the set on which $\uex(x)= 0$, i.e.~where the constraint is active, is a subset of the set on which $q(x)<0$ where there is a downward force on the string.  Finding the free boundary, i.e.~$x=\alpha$ in this case, where the string first meets the obstacle, is often the goal of a numerical analysis of this kind of problem.
+The exact solution is plotted in the right figure.  Note that the set on which $\uex(x)= 0$, i.e.~where the constraint is active, is a strict subset of the set on which $q(x)<0$, where there is a downward force on the string.  Finding the free boundary $x=\alpha$, where the string first meets the obstacle, is a typical goal for this kind of problem.
 
-Formula \eqref{eq:obstacleexactsolution} appears in the short driver program \href{https://github.com/bueler/popdip/blob/main/matlab/obstacle.m}{\texttt{obstacle.m}} so that the numerical error can be measured at the end.  It calls POPDIP with initial iterate $(u_0)_i=1$, and parameters \texttt{rtol} $=10^{-12}$ and \texttt{theta} $=0.001$, otherwise using the defaults.  The user-supplied objective function $f_n(u)$ \eqref{eq:obstaclefcn}, and the gradient, Hessian, and the formula for $q(x)$, all appear in the function \href{https://github.com/bueler/popdip/blob/main/matlab/obstaclefcn.m}{\texttt{obstaclefcn.m}}, the handle of which is also passed to POPDIP.
+Formula \eqref{eq:obstacleexactsolution} appears in the short driver program \href{https://github.com/bueler/popdip/blob/main/matlab/obstacle.m}{\texttt{obstacle.m}}.  Because the exact solution is known, the numerical error can be measured at the end.  The program calls POPDIP with initial iterate $(u_0)_i=1$, and parameters \texttt{rtol} $=10^{-12}$ and \texttt{theta} $=0.001$, otherwise using the defaults.  The user-supplied objective function $f_n(u)$, namely \eqref{eq:obstaclefcn}, and the gradient, Hessian, and the formula for $q(x)$, all appear in the function \href{https://github.com/bueler/popdip/blob/main/matlab/obstaclefcn.m}{\texttt{obstaclefcn.m}}, the handle of which is also passed to POPDIP.
 
-By default \href{https://github.com/bueler/popdip/blob/main/matlab/obstacle.m}{\texttt{obstacle.m}} uses $n=25$ interior grid points.  The values of the merit function $\nu_k$ from POPDIP, and of the dynamically-adjusted barrier parameters $\mu_k$, suggest strongly superlinear convergence similar to previous Examples:
+By default \href{https://github.com/bueler/popdip/blob/main/matlab/obstacle.m}{\texttt{obstacle.m}} uses $n=25$ interior grid points.  The output merit function $\nu_k$ values, and the dynamically-adjusted barrier parameters $\mu_k$, suggest strongly superlinear convergence similar to previous Examples:
 \begin{Verbatim}[fontsize=\footnotesize]
 >> obstacle
         nu_k                 mu_k
@@ -578,15 +579,16 @@ By default \href{https://github.com/bueler/popdip/blob/main/matlab/obstacle.m}{\
 12 iterations with n=25: ||u-uexact||_inf = 6.557e-03
 \end{Verbatim}
 
-The final numerical error norm $\|u-\uex\|_\infty = 6.557 \times 10^{-3}$ shows that $u\in\RR^{25}$ is close to the continuum exact solution at the grid points.  On the other hand, our tolerance \texttt{rtol} $=10^{-12}$ has made $u$ \emph{much} closer to the constrained optimum of $f_{25}(u)$.  That is, most of the numerical error is discretization error, which we can only reduce by choosing larger $n$.\footnote{Or by choosing a different discretization scheme.  One might want to use a spectral method, but it will not work easily for obstacle problems!}
+The final numerical error norm $\|u-\uex\|_\infty = 6.557 \times 10^{-3}$ shows that $u\in\RR^{25}$ is close to the continuum exact solution at the grid points.  On the other hand, our tolerance \texttt{rtol} $=10^{-12}$ has made $u$ \emph{much} closer to the constrained optimum $u_*$ of $f_{25}(u)$.  That is, most of the numerical error is discretization error, which we can only reduce by choosing larger $n$.\footnote{Or by choosing a different discretization scheme.  One might want to use a spectral method, but it will not work easily for obstacle problems!}
 
-The run also produces the figures below.  Note that the initial iterate (left figure) is far from the correct solution, and indeed the merit function value $\nu_k$ stagnates for a while before entering the region of superlinear convergence.  In the right figure note that the numerical error jumps up from zero abruptly at the free boundary.  This is a location where $\uex(x)$ has a discontinuous second derivative, and thus there is no way for a piecewise-linear function to do a good job of approximating it.
+The run also produces the figures below.  Note that the initial iterate (left figure) is far from the correct solution, and indeed the merit function value $\nu_k$ stagnates for a while before entering the region of superlinear convergence.  In the right figure note that the numerical error jumps up from zero abruptly at the free boundary.  In fact $\uex(x)$ has a discontinuous second derivative at the free boundary $x=\alpha$, and thus there is no way for a piecewise-linear function to do a good job of approximating it.
 
 \medskip
 \noindent \mbox{\includegraphics[width=0.45\textwidth]{figs/iteratesobstacle.pdf} \qquad
 \includegraphics[width=0.5\textwidth]{figs/errorobstacle.pdf}}
 
-The reader should experiment with larger $n$ values.  The numerical error can be reduced by an order of magnitude by two grid-doubling refinements to $n=100$.  However, beyond that the POPDIP algorithm is not so well-behaved, and significantly lower numerical error is hard to achieve.  The reasons are not all clear to me even though I have been working with problems like this for a while \cite{Bueler2016}.
+The reader should experiment with larger $n$ values.  The numerical error can be reduced by an order of magnitude by two grid-doubling refinements to $n=100$.  However, beyond that the POPDIP algorithm is not so well-behaved, and significantly smaller numerical error is hard to achieve.  The reasons are not all clear to me even though I have been working with problems like this for a while \cite{Bueler2016}.
+
 
 %\subsubsection*{Example 4.}
 %FIXME Application to glacier problem.  Note a primal-dual interior point method for a glacier problem appears in \cite{Calvoetal2003}
