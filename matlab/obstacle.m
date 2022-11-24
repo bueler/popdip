@@ -46,16 +46,20 @@ function obstacle(n,rtol)
     plot(x,uk,'r'),  xlabel x,  grid on,  axis tight
     title('iterates in black, numerical solution in red')
 
-    % plot exact solution and final iterate
+    % plot exact solution, final primal iterate, final dual iterate
     figure(2), clf
-    subplot(3,1,1:2)
+    subplot(3,1,1)
     xf = 0:.001:1;
-    plot(x,uk,'r'),  hold on,  plot(xf,uexact(xf),'b')
-    ylabel('solutions'),  grid on
+    plot(xf,uexact(xf),'b',x,uk,'ro','markersize',5)
+    ylabel('u'),  grid on
     title('numerical solution in red, exact solution in blue')
+    subplot(3,1,2)
+    plot(x,iterlist(n+1:2*n,end),'ro','markersize',5)
+    ylabel('\lambda'),  grid on
     subplot(3,1,3)
-    plot(x,abs(uk' - uexact(x)),'ko')
-    xlabel x,  ylabel('numerical error'),  grid on
+    plot(x,abs(uk' - uexact(x)),'ko','markersize',5)
+    xlabel x
+    ylabel('u error'),  grid on
 
     % optionally plot q(x)
     if false   % toggle to generate plot

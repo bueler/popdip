@@ -23,7 +23,7 @@
 
 \title{POPDIP: a POsitive-variables \\ Primal-Dual Interior Point optimization method}
 \author{Ed Bueler}
-\date{\today}
+\date{Version 1.0. \today}
 
 \begin{document}
 \maketitle
@@ -581,13 +581,13 @@ By default \href{https://github.com/bueler/popdip/blob/main/matlab/obstacle.m}{\
 
 The final numerical error norm $\|u-\uex\|_\infty = 6.557 \times 10^{-3}$ shows that $u\in\RR^{25}$ is close to the continuum exact solution at the grid points.  On the other hand, our tolerance \texttt{rtol} $=10^{-12}$ has made $u$ \emph{much} closer to the constrained optimum $u_*$ of $f_{25}(u)$.  That is, most of the numerical error is discretization error, which we can only reduce by choosing larger $n$.\footnote{Or by choosing a different discretization scheme.  One might want to use a spectral method, but it will not work easily for obstacle problems!}
 
-The run also produces the figures below.  Note that the initial iterate (left figure) is far from the correct solution, and indeed the merit function value $\nu_k$ stagnates for a while before entering the region of superlinear convergence.  In the right figure note that the numerical error jumps up from zero abruptly at the free boundary.  In fact $\uex(x)$ has a discontinuous second derivative at the free boundary $x=\alpha$, and thus there is no way for a piecewise-linear function to do a good job of approximating it.
+The run also produces the figures below.  The initial iterate $u_0=1$ (left figure) is far from the correct solution.  We see above that the merit function value $\nu_k$ stagnates for a while before starting superlinear convergence.  The right figure shows both the primal $u(x)$ and the dual $\lambda(x)$ numerical solutions, for which complementarity ($u_i \lambda_i=0$) is clear.  Note that the numerical error $|u_i-\uex(x_i)|$ jumps up from zero abruptly at the free boundary.\footnote{In fact $\uex(x)$ has a discontinuous second derivative at the free boundary $x=\alpha$.  There is no way for a piecewise-linear function to do a good job of approximating it.}
 
 \medskip
 \noindent \mbox{\includegraphics[width=0.45\textwidth]{figs/iteratesobstacle.pdf} \qquad
 \includegraphics[width=0.5\textwidth]{figs/errorobstacle.pdf}}
 
-The reader should experiment with larger $n$ values.  The numerical error can be reduced by an order of magnitude by two grid-doubling refinements to $n=100$.  However, beyond that the POPDIP algorithm is not so well-behaved, and significantly smaller numerical error is hard to achieve.  The reasons are not all clear to me even though I have been working with problems like this for a while \cite{Bueler2016}.
+The reader might experiment with larger $n$ values.  The numerical error is an order of magnitude smaller after two grid-doubling refinements to $n=100$.  The POPDIP algorithm is not so well-behaved under further refinement; significantly smaller numerical error is hard to achieve.  The reasons are not all clear to me!
 
 
 %\subsubsection*{Example 4.}
