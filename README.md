@@ -26,9 +26,9 @@ such examples are `small.m`, `linear.m`, and `obstacle.m`:
 
 ## documentation
 
-Read `doc.pdf`.
+Please read `doc.pdf`.
 
-This LaTeX document can be rebuilt, which requires `pdflatex` and `bibtex`, by
+This LaTeX document can be rebuilt, using `pdflatex` and `bibtex`, by
 doing `make` in the `doc/` directory.
 
 ## history

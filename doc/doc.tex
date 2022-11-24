@@ -241,7 +241,7 @@ A \Delta x = 0.  \label{eq:dxnull}
 \end{equation}
 Note there is no equivalent linear restriction on $\Delta\lambda$; if $\lambda_k\in T^o$ then $\Delta\lambda$ can be anything.
 
-On the other hand, use of a direct solver means the implementation is not scalable to large problem sizes.  A scalable implementation would not assemble the full matrix in \eqref{eq:newtonstep}, and it might use an iterative solver, along the way exploiting the block structure.  Preconditioners \cite{Bueler2021} for the upper-left block, and then for the equality-constraint Schur complement \cite[chapters 14]{Bueler2021}, should be considered.
+On the other hand, use of a direct solver means the implementation is not scalable to large problem sizes.  A scalable implementation would not assemble the full matrix in \eqref{eq:newtonstep}, and it might use an iterative solver, along the way exploiting the block structure.  Preconditioners \cite{Bueler2021,TrefethenBau1997} for the upper-left block, and then for the equality-constraint Schur complement \cite[chapters 14]{Bueler2021} as well, should be considered.
 
 Given a solution $(\Delta x,\Delta\tau,\Delta\lambda)$ of \eqref{eq:newtonstep} and \eqref{eq:newtonsteplam}, the update formulas are
 \begin{align}
@@ -596,13 +596,14 @@ The reader should experiment with larger $n$ values.  The numerical error can be
 
 \subsection*{Possible improvements}
 
-FIXME
+POPDIP is an implemented primal-dual interior point method, but it is far from the best algorithm which experts could create.  The following non-exhaustive list of possible improvements suggests what an expert might focus on.
+
 \begin{itemize}
-\item add sufficient-decrease-type line search \cite[sections 19.3, 19.4]{NocedalWright2006}; compare the modified back-tracking line searches in \cite{BensonMunson2006}
-\item scalable linear algebra
-\item predictor-corrector structure \cite[section 14.2]{NocedalWright2006}
-\item adjust Hessian block to always be positive definite \cite[section 11.4]{GrivaNashSofer2009}
-\item apply quasi-Newton idea to approximate Hessian block \cite[sections 12.3, 13.5]{GrivaNashSofer2009} and \cite[section 19.3]{NocedalWright2006}
+\item The step sizes $\alpha$ can be chosen more carefully so that the iterates $x_k,\tau_k,\lambda_k$ remain in a neighborhood of the central path.  Chapter 14 of \cite{NocedalWright2006} may be a good reference, but see also \cite{YamashitaYabe1996} and \cite{ZhangTapiaDennis1992}.  Section 14.2 of \cite{NocedalWright2006} describes a predictor-corrector scheme which might be more efficient.
+\item For nonquadratic objective functions $f(x)$ one should add a line search, presumably a sufficient-decrease line search as in \cite[section 11.5]{GrivaNashSofer2009} and \cite[sections 19.3, 19.4]{NocedalWright2006}.  See also the modified back-tracking line searches in \cite{BensonMunson2006}.
+\item For nonconvex objective functions $f(x)$ we could adjust the Hessian block in system \eqref{eq:newtonstep} to always be positive definite so that the unconstrained primal step would be a descent direction.  See \cite[section 11.4]{GrivaNashSofer2009}.
+\item We could apply scalable linear algebra, presumably preconditioned Krylov methods \cite{Bueler2021}, so that when matrices are sparse, as in Example 3, the solution of system \eqref{eq:newtonstep} is faster.
+\item One could apply the quasi-Newton idea to construct an approximation of the Hessian block in system \eqref{eq:newtonstep}, so that the user does not need to supply a Hessian.  See sections 12.3 and 13.5 of \cite{GrivaNashSofer2009} and section 19.3 of \cite{NocedalWright2006}.
 \end{itemize}
 
 
@@ -612,21 +613,24 @@ FIXME
 \bibliographystyle{siam}
 
 \appendix
-\subsection*{Appendix: Invertibility of the system matrix in LP cases.}
+\subsection*{Appendix: Invertibility of the system matrix}
 
 \newtheorem*{lemma}{Lemma}
+\newtheorem*{corollary}{Corollary}
 
-Recall that if $\mu_k>0$, and because $(\lambda_k)_i (x_k)_i = \mu_k$, then $x_k,\lambda_k$ are strictly positive so the diagonal matrices $\Lambda_k,X_k$ are (trivially) invertible.
+Recall from \eqref{eq:equalities} that if $\mu_k>0$ then $x_k,\lambda_k$ are strictly positive.  It follows that the diagonal matrices $\Lambda_k,X_k$ in \eqref{eq:unreducednewtonstep} are invertible.
 
 \begin{lemma}
-The square system matrix on the left of \eqref{eq:lpnewtonstep} is invertible.
+Suppose $\grad^2 f(x_k)$ is positive semi-definite.  Then the $(n+m)\times (n+m)$ symmetric matrix in linear system \eqref{eq:newtonstep} is invertible.
 \end{lemma}
 
-\begin{proof}  Suppose the system matrix on the left of \eqref{eq:lpnewtonstep} has a null space:
+\begin{proof}  Let $K=\grad^2 f(x_k)+X_k^{-1}\Lambda_k$.  It is easy to see that $K$ is positive definite, thus invertible, since $X_k^{-1}\Lambda_k$ is diagonal with positive diagonal entries.
+
+Suppose the system matrix has a null space:
 \begin{equation}
 \begin{bmatrix}
-X_k^{-1}\Lambda_k  & -A^\top \\
--A                 & 0
+K   & -A^\top \\
+-A  & 0
 \end{bmatrix}
 \begin{bmatrix}
 \Delta x \\
@@ -635,12 +639,17 @@ X_k^{-1}\Lambda_k  & -A^\top \\
 = 0. \label{eq:invertlp}
 \end{equation}
 The first row of \eqref{eq:invertlp} says
-    $$X_k^{-1}\Lambda_k \Delta x = A^\top \Delta\tau.$$
-Multiplying this by $X_k^2$ and observing that $X_k\Lambda_k = \mu_k I$, we can write $\mu_k\Delta x = X_k^2 A^\top \Delta \tau$.  Since $\mu_k\ne 0$, the second row of \eqref{eq:invertlp}, $A\Delta x=0$, can be written as an equation for $\Delta\tau$:
-    $$A X_k^2 A^\top \Delta \tau = 0.$$
-Recall that since $A$ has full row rank its columns which span $\RR^m$, and this is not changed by scaling each column by a nonzero value, so $AX_k$ also has full row rank.  But then $A X_k^2 A^\top = (AX_k) (AX_k)^\top$ is invertible, so $\Delta \tau=0$.  Then also $\Delta x=0$, so the null space is trivial and the matrix is invertible.\end{proof}
+    $$K \Delta x = A^\top \Delta\tau,$$
+equivalently $\Delta x = K^{-1} A^\top \Delta \tau$.  Now the second row of \eqref{eq:invertlp}, $A\Delta x=0$, can be written as an equation for $\Delta\tau$:
+    $$A K^{-1} A^\top \Delta \tau = 0.$$
+Since $K^{-1}$ is also positive definite, it has a Cholesky decomposition \cite{TrefethenBau1997}, so $K^{-1}=LL^\top$ where $L$ is $n\times n$, lower triangular, and invertible.  Recall that since $A$ has full row rank its columns span $\RR^m$, thus $AL$ also has full row rank.  But then $A K^{-1} A^\top = (AL) (AL)^\top$ is positive definite, thus invertible, so $\Delta \tau=0$.  Now $\Delta x=0$, so the null space is trivial and the matrix is invertible. \end{proof}
 
-The quirky article by Strang \cite{Strang1987} expands on the importance of matrices $A D^2 A^\top$ where $D$ is an invertible diagonal matrix and $A$ has full row rank.
+\begin{corollary} The system matrix in LP problem \eqref{eq:lpnewtonstep} is invertible.
+\end{corollary}
+
+\begin{proof}  The zero matrix is positive semi-definite.  \end{proof}
+
+Note that in \eqref{eq:lpnewtonstep} we have $K^{-1}=\Lambda_k^{-1} X_k=D^2$, with positive diagonal factors $D$, as the Cholesky decomposition.  The quirky article by Strang \cite{Strang1987} expands on the importance of matrices $A D^2 A^\top$ where $D$ is an invertible diagonal matrix and $A$ has full row rank.
 
 \end{document}
 
