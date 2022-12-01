@@ -23,7 +23,7 @@
 
 \title{POPDIP: a POsitive-variables \\ Primal-Dual Interior Point optimization method}
 \author{Ed Bueler}
-\date{Version 1.0. \today}
+\date{Version 1.1. \today}
 
 \begin{document}
 \maketitle
@@ -71,21 +71,23 @@ Now let $\{e_1,\dots,e_n\}$ be the standard basis of $\RR^n$.  The first-order n
 \end{equation}
 
 Conditions \eqref{eq:posfirstorderbarrier} can be reformulated by defining additional variables
-    $$\lambda_i = \frac{\mu}{x_i}$$
-so that $\lambda\in\RR^n$.  Note that $\lambda>0$ if and only if $x>0$ because $\lambda_i x_i = \mu > 0$.  Then \eqref{eq:posfirstorderbarrier}, plus feasibility for $x$, is equivalent to the following nonlinear system of equations and inequalities:
+\begin{equation}
+\lambda_i = \frac{\mu}{x_i} \label{eq:poslocktogether}
+\end{equation}
+so that $\lambda\in\RR^n$.  Note that $\lambda>0$ if and only if $x>0$ because $\lambda_i x_i = \mu > 0$.  Equations \eqref{eq:posfirstorderbarrier} and \eqref{eq:poslocktogether}, plus feasibility for $x$, form the following nonlinear system of equations and inequalities:
 \begin{align}
 \grad f(x) - \lambda &= 0 \label{eq:posfirstordersystem} \\
 \lambda_i x_i &= \mu, \qquad i=1,\dots,n \notag \\
 x &\ge 0 \notag \\
 \lambda &\ge 0 \notag
 \end{align}
-The feasible set for $x$ and for $\lambda$ is the same, namely $S \subset \RR^n$.   (By contrast, for the general problem \eqref{eq:problem}, the feasible set for the primal variables $x$ is different from that of the dual variables $\lambda$.)  Because of the second condition in \eqref{eq:posfirstordersystem}, based on constant $\mu>0$, both $x$ and $\lambda$ are strictly positive and thus in the interior $S^\circ$.
+Because of the second condition in system \eqref{eq:posfirstordersystem}, based on a constant $\mu>0$, both $x$ and $\lambda$ are strictly positive and thus in the interior $S^\circ$.  (By contrast, in the general problem \eqref{eq:problem} the interior of the feasible set for the primal variables $x$ is different from $S^\circ$.)
 
-The first condition in \eqref{eq:posfirstordersystem} can be rewritten using a Lagrangian function for \eqref{eq:posproblem}:
+The first condition in system \eqref{eq:posfirstordersystem} can be rewritten as $\grad_x \mathcal{L}(x,\lambda)=0$ using this Lagrangian function for problem \eqref{eq:posproblem}:
 \begin{equation}
 \mathcal{L}(x,\lambda) = f(x) - \sum_{i=1}^n \lambda_i x_i.  \label{eq:poslagrangian}
 \end{equation}
-Now \eqref{eq:posfirstordersystem} states that $\grad_x \mathcal{L}(x,\lambda)=0$.  In fact, the first-order KKT conditions \cite[sections 14.4, 14.5]{GrivaNashSofer2009} of \eqref{eq:posproblem} are nearly the same as \eqref{eq:posfirstordersystem} but with the second equation replaced by complementarity,
+The first-order KKT conditions \cite[sections 14.4, 14.5]{GrivaNashSofer2009} of \eqref{eq:posproblem}, which one can derive using Lagrangian \eqref{eq:poslagrangian}, are nearly the same as \eqref{eq:posfirstordersystem} but with the second equation replaced by complementarity,
 \begin{align}
 \grad f(x) - \lambda &= 0 \label{eq:poskkt} \\
 \lambda_i x_i &= 0, \qquad i=1,\dots,n \notag \\
@@ -93,7 +95,7 @@ x &\ge 0 \notag \\
 \lambda &\ge 0 \notag
 \end{align}
 
-Thus the barrier method which generated system \eqref{eq:posfirstordersystem} modifies KKT conditions \eqref{eq:poskkt} by changing the complementary slackness condition into a nonzero connection between the primal and dual variables, with their product is set to a positive constant.  System \eqref{eq:posfirstordersystem} describes a primal and dual $(x,\lambda)$ solution which is interior to the feasible set, and different from the solution to \eqref{eq:poskkt}.
+Now we see that, though a logarithmic barrier method generated system \eqref{eq:posfirstordersystem}, the system can also be derived by modifying KKT conditions \eqref{eq:poskkt}.  The modification changes the complementary slackness condition into a nonzero connection between the primal and dual variables.  (Their product is set to a positive constant.)  System \eqref{eq:posfirstordersystem} describes a primal and dual $(x,\lambda)$ solution which is interior to the feasible set, and different from the solution to \eqref{eq:poskkt}.
 
 The first condition in \eqref{eq:poskkt} allows $\lambda$ to be eliminated if desired: $\lambda = \grad f(x)$.  Writing the KKT conditions without these dual variables gives a \emph{nonlinear complementarity problem} (NCP) \cite{FacchineiPang2007},
 \begin{equation}
@@ -103,7 +105,7 @@ Thus we may regard POPDIP as solving the $\mu$-modified NCP
 \begin{equation}
 x \ge 0, \qquad \grad f(x) \ge 0, \qquad x_i (\grad f(x))_i = \mu. \label{eq:mumodifiedncp}
 \end{equation}
-However, the method achieves quadratic convergence substantially because it updates primal and dual variables separately.  Stating the algorithm or the original KKT conditions as an NCP, thereby suppressing the dual variables, is not beneficial to solver performance.  On the other hand, such NCP formulations also appear in problems which are not optimizations, rather variational inequalities, including in a glaciological case upon which I am focussed \cite{Bueler2016}.
+However, POPDIP can achieve quadratic convergence substantially because it updates primal and dual variables separately.  Stating the algorithm or the original KKT conditions as an NCP, thereby suppressing the dual variables, is not beneficial to solver performance.  On the other hand, such NCP formulations also appear in problems which are not optimizations, rather variational inequalities, and I am focussed these days on glaciological variational inequalities \cite{Bueler2016}.
 
 
 \subsection*{General problem}
@@ -133,7 +135,7 @@ Consider the following Lagrangian for \eqref{eq:problem}:
 \begin{equation}
 \mathcal{L}(x,\tau,\lambda) = f(x) - \tau^\top (Ax - b) - \lambda^\top x, \label{eq:lagrangian}
 \end{equation}
-for multipliers $\tau\in\RR^m$ and $\lambda\in \RR^n$.  Function \eqref{eq:lagrangian} reduces to \eqref{eq:poslagrangian} if there are $m=0$ linear equality constraints (so $\tau$ is absent).
+for multipliers $\tau\in\RR^m$ and $\lambda\in \RR^n$.  Function \eqref{eq:lagrangian} reduces to \eqref{eq:poslagrangian} if there are $m=0$ linear equality constraints and $\tau$ is absent.
 
 The first-order necessary conditions, the KKT conditions, for \eqref{eq:problem} are given by $\grad_x\mathcal{L}=0$ and $\grad_\tau\mathcal{L}=0$, plus complementarity for the primal variables $x$ and dual variables $\lambda$:
 \begin{align}
@@ -143,7 +145,7 @@ The first-order necessary conditions, the KKT conditions, for \eqref{eq:problem}
 x &\ge 0 \notag \\
 \lambda &\ge 0 \notag
 \end{align}
-Conditions \eqref{eq:kkt} reduce to system \eqref{eq:poskkt} given in the Introduction when there are $m=0$ linear equality constraints.  Note that the dual feasible set $T=\{\lambda \ge 0\}\subset \RR^n$ is generally different from, and larger than, the primal feasible set $S$.
+Conditions \eqref{eq:kkt} reduce to system \eqref{eq:poskkt} given in the Introduction when there are $m=0$ linear equality constraints.  Note that the dual feasible set $\{\lambda \ge 0\}\subset \RR^n$ is generally different from, and larger than, the primal feasible set $S$.
 
 
 \subsection*{Algorithm design}
@@ -152,7 +154,7 @@ The POPDIP algorithm solves \eqref{eq:problem} by applying a Newton method to a 
 \begin{equation}
 \lambda_i x_i = \mu_k, \qquad i=1,\dots,n \notag \\
 \end{equation}
-for a (scalar) barrier sequence $\{\mu_k>0\}$ which will go to zero.  Thus POPDIP computes primal and dual iterates in the interiors: $x \in S^o$, $\lambda \in T^o$.  However, if the method converges as $\mu_k \to 0$ then the limiting values of $x$ and $\lambda$ solve the KKT conditions \eqref{eq:kkt}.  Though the algorithm is terminated after a finite number of steps, in examples the KKT system is solved to high accuracy.
+for a (scalar) barrier sequence $\mu_k>0$ which will go to zero.  Thus POPDIP computes primal and dual iterates in the interiors: $x \in S^o$, $\lambda > 0$.  However, if the method converges as $\mu_k \to 0$ then the limiting values of $x$ and $\lambda$ solve the KKT conditions \eqref{eq:kkt}.  Though the algorithm is terminated after a finite number of steps, we will see in examples that the KKT system can be solved to high accuracy.
 
 Each step of the algorithm is a Newton step for the modified equalities from \eqref{eq:kkt}, namely
 \begin{align}
@@ -162,17 +164,17 @@ Each step of the algorithm is a Newton step for the modified equalities from \eq
 \end{align}
 Because of its third equation, \eqref{eq:equalities} is always a nonlinear system.  However, if $f$ is quadratic or linear then \emph{only} the third equation, the modified complementarity condition, is nonlinear.
 
-Intuitively, an interior-point iteration for \eqref{eq:equalities} sees ``changing equations'' with iteration $k$.  As we update the $\mu_k$ value, each new iterate is attempting to solve new equations.  Thus, though the iterates of POPDIP should converge to the solution of KKT problem \eqref{eq:kkt}, they will not converge to a solution of \eqref{eq:equalities} for any particular $\mu_k>0$.
+Intuitively, an interior-point iteration for \eqref{eq:equalities} solves ``changing equations'' with iteration $k$.  As we update the $\mu_k$ value, each new iterate is attempting to solve new equations.  Thus, though the iterates of POPDIP should converge to the solution of KKT problem \eqref{eq:kkt}, they will not converge to a solution of \eqref{eq:equalities} for any particular $\mu_k>0$.
 
-The Newton step computes a search direction in the $x,\tau,\lambda$ variables using the linearization of equations \eqref{eq:equalities}.  The actual POPDIP step is subject to positivity constraints on $x$ and $\lambda$, via a ratio test \cite[section 3.1]{GrivaNashSofer2009}, uses generally different step sizes for the three parts $x,\tau,\lambda$.
+The Newton step computes a search direction in the $x,\tau,\lambda$ variables using the linearization of equations \eqref{eq:equalities}, but POPDIP uses different step sizes for the three variables.  A ratio test \cite[section 3.1]{GrivaNashSofer2009} restricts the step sizes for $x$ and $\lambda$, the variables subject to inequality constraints.
 
-To describe the Newton step in detail, let $x=x_k+\Delta x$, $\tau=\tau_k+\Delta\tau$ and $\lambda=\lambda_k+\Delta\lambda$.  The unknowns form a candidate search direction $p=(\Delta x,\Delta\tau,\Delta\lambda)$ which is modified later.  Substituting into \eqref{eq:equalities} and expanding to first order gives
+To describe the Newton step in detail, let $x=x_k+\Delta x$, $\tau=\tau_k+\Delta\tau$ and $\lambda=\lambda_k+\Delta\lambda$.  The unknowns form a candidate search direction $p=(\Delta x,\Delta\tau,\Delta\lambda)$; it will be modified later.  Substituting into \eqref{eq:equalities} and expanding to first order gives
 \begin{align}
 \grad f(x_k) + \grad^2 f(x_k) \Delta x - A^\top \tau_k - A^\top \Delta \tau - \lambda_k - \Delta \lambda &= 0 \label{eq:prenewtonstep} \\
 -A x_k - A \Delta x + b &= 0 \notag \\
 (\lambda_k)_i (x_k)_i + (x_k)_i (\Delta\lambda)_i + (\lambda_k)_i (\Delta x)_i &= \mu_k, \qquad i=1,\dots,n \notag
 \end{align}
-Rearranging this as a vectorized and matrix-block system gives
+Rearranging this as a matrix-block system gives
 \begin{equation}
 \begin{bmatrix}
 \grad^2 f(x_k) & -A^\top & -I \\
@@ -195,11 +197,7 @@ Here $I$ is the $n\times n$ identity matrix, $e=(1,1,\dots,1)^\top \in \RR^n$, a
     $$X = \begin{bmatrix} x_1 & & \\ & \ddots & \\ & & x_n \end{bmatrix}, \qquad \Lambda = \begin{bmatrix} \lambda_1 & & \\ & \ddots & \\ & & \lambda_n \end{bmatrix}.$$
 Note that $\Lambda x = X \lambda$ in this notation.\footnote{The product $\Lambda x = X\lambda$ is simply \, \texttt{x.*lambda}\, in \Matlab.}
 
-Linear system \eqref{eq:unreducednewtonstep} can also be written as
-\begin{equation}
-M_k p = - r_k \label{eq:overallnewtonstep}
-\end{equation}
-where $M_k$ is the $(2n+m) \times (2n+m)$ square and sparse \emph{system matrix} on the left side of \eqref{eq:unreducednewtonstep} and $r_k=r_k(x_k,\tau_k,\lambda_k) \in \RR^{2n+m}$ is the residual of system \eqref{eq:equalities} for the current iterate.  That is, for a given $\mu_k>0$ we may consider the \emph{residual function}
+For a given $\mu_k>0$ we may consider the \emph{residual function} of system \eqref{eq:equalities}:
 \begin{equation}
 r_k(x,\tau,\lambda) = \begin{bmatrix}
 \grad f(x) - A^\top \tau - \lambda \\
@@ -207,13 +205,18 @@ r_k(x,\tau,\lambda) = \begin{bmatrix}
 \Lambda x - \mu_k e
 \end{bmatrix}. \label{eq:residualnewtonstep}
 \end{equation}
+Using this notation, linear system \eqref{eq:unreducednewtonstep} can be written as
+\begin{equation}
+M_k p = - r_k \label{eq:overallnewtonstep}
+\end{equation}
+where $M_k$ is the $(2n+m) \times (2n+m)$ square and sparse \emph{system matrix} on the left side of \eqref{eq:unreducednewtonstep} and $r_k=r_k(x_k,\tau_k,\lambda_k) \in \RR^{2n+m}$ is the residual for the current iterate.
 
-In fact, system \eqref{eq:unreducednewtonstep}, or \eqref{eq:overallnewtonstep}, can be made smaller by noting that the diagonal matrix $X_k$ is invertible, because $x_k>0$ strictly in \eqref{eq:equalities}.  Thus the last row of system \eqref{eq:unreducednewtonstep} can be solved for $\Delta\lambda$ in terms of $\Delta x$:
+However, system \eqref{eq:unreducednewtonstep} can be made smaller by noting that the diagonal matrix $X_k$ is invertible, because $x_k>0$ strictly in \eqref{eq:equalities}.  Thus the last row of system \eqref{eq:unreducednewtonstep} can be solved for $\Delta\lambda$ in terms of $\Delta x$:
 \begin{equation}
 \Lambda_k\Delta x + X_k\Delta \lambda = \mu_k e - \Lambda_k x_k \quad \iff \quad
 \Delta\lambda = \mu_k X_k^{-1} e - \lambda_k - X_k^{-1} \Lambda_k \Delta x \label{eq:solvefordlam}
 \end{equation}
-Instead of \eqref{eq:unreducednewtonstep} we will actually solve the smaller, \emph{symmetric} system
+In fact, instead of \eqref{eq:unreducednewtonstep} we will actually solve the smaller, \emph{symmetric} system
 \begin{equation}
 \begin{bmatrix}
 \grad^2 f(x_k) + X_k^{-1}\Lambda_k & -A^\top \\
@@ -233,13 +236,13 @@ for $\Delta x,\Delta\tau$, and then complete the Newton step computation by assi
 \begin{equation}
 \Delta\lambda = \mu_k X_k^{-1} e - \lambda_k - X_k^{-1} \Lambda_k \Delta x. \label{eq:newtonsteplam}
 \end{equation}
-The Appendix gives a proof that the matrix in \eqref{eq:newtonstep} is invertible.
+The Appendix gives a proof that the block matrix in \eqref{eq:newtonstep} is invertible.
 
 We will solve system \eqref{eq:newtonstep} using direct linear algebra, via Matlab's default ``$\backslash$'' linear solver.  Because this direct solver is quite accurate, the residual norm $\|b-A x_k\|$, part of the right-hand side of \eqref{eq:newtonstep}, will be very small.  In this sense, system \eqref{eq:newtonstep} imposes the classical null-space requirement on the (primal) search direction for linear equality constraints \cite[chapter 3]{GrivaNashSofer2009}:
 \begin{equation}
 A \Delta x = 0.  \label{eq:dxnull}
 \end{equation}
-Note there is no equivalent linear restriction on $\Delta\lambda$; if $\lambda_k\in T^o$ then $\Delta\lambda$ can be anything.
+Note there is no equivalent linear restriction on $\Delta\lambda$; the direction of $\Delta\lambda$ is unrestricted.
 
 On the other hand, use of a direct solver means the implementation is not scalable to large problem sizes.  A scalable implementation would not assemble the full matrix in \eqref{eq:newtonstep}, and it might use an iterative solver, along the way exploiting the block structure.  Preconditioners \cite{Bueler2021,TrefethenBau1997} for the upper-left block, and then for the equality-constraint Schur complement \cite[chapters 14]{Bueler2021} as well, should be considered.
 
@@ -249,13 +252,11 @@ x_{k+1} &= x_k + \alpha_x \Delta x \label{eq:updates} \\
 \tau_{k+1} &= \tau_k + \alpha_\tau \Delta \tau \notag \\
 \lambda_{k+1} &= \lambda_k + \alpha_\lambda \Delta \lambda \notag
 \end{align}
-Separate step sizes $\alpha_x,\alpha_\tau,\alpha_\lambda$ are used for the three vector variables $x,\tau,\lambda$, though this is not the only choice \cite{YamashitaYabe1996}.  Because the constraint equations are linear, the full Newton step $\alpha_\tau=1$ is always used for the $\tau$ multipliers.
+Separate step sizes $\alpha_x,\alpha_\tau,\alpha_\lambda$ are used for the three vector variables $x,\tau,\lambda$, though this is not the only strategy in the literature \cite{YamashitaYabe1996}.  Because the constraint equations in \eqref{eq:problem} are linear, the full Newton step $\alpha_\tau=1$ is always used for the $\tau$ multipliers.
 
-The quadratic convergence of a general primal-dual interior point method is proven in subsection 16.7.2 of \cite{GrivaNashSofer2009}.  That method replaces general inequality constraints $g_i(x)\ge 0$ by $g_i(x) - s_i =0$, with slack variables $s_i\ge 0$.  However, in our case this replacement says $x_i-s_i=0$ and $s_i\ge 0$, clearly unneeded as it simply renames existing primal variables $x$.
+Quadratic convergence of a general primal-dual interior point method is proven in subsection 16.7.2 of \cite{GrivaNashSofer2009}.  That method replaces general inequality constraints $g_i(x)\ge 0$ by $g_i(x) - s_i =0$, with slack variables $s_i\ge 0$.  However, in our case this replacement says $x_i-s_i=0$ and $s_i\ge 0$, clearly unneeded as it simply renames existing primal variables $x$.  Also, the back-tracking globalization of the inequality constraints described in algorithm 16.1 of \cite{GrivaNashSofer2009}, which chooses $\alpha_x$ from $\{1,1/2,1/4,\dots\}$ so that $g_i(x_k + \alpha_x \Delta x) > 0$, is not needed to maintain primal feasibility because of the linearity of the constraint functions in \eqref{eq:problem}.  That is, for constraints $Ax=b$ and $x\ge 0$ a ratio test for $\Delta x$ will guarantee primal feasibility, as in the simplex method \cite[chapter 5]{GrivaNashSofer2009}.
 
-Also, the back-tracking globalization of the inequality constraints described in algorithm 16.1 of \cite{GrivaNashSofer2009}, choosing $\alpha_x$ from $\{1,1/2,1/4,\dots\}$ so that $g_i(x_k + \alpha_x \Delta x) > 0$, is not needed to maintain primal feasibility because of the linearity of the constraint functions in \eqref{eq:problem}.  That is, for constraints $Ax=b$ and $x\ge 0$ a ratio test for $\Delta x$ will guarantee primal feasibility, as also holds in the simplex method \cite[chapter 5]{GrivaNashSofer2009}.
-
-POPDIP will shorten the step in the Newton search direction \emph{only} because of the inequality constraints, and not for the ``usual'' (unconstrained) line search reasons, for instance to generate sufficient decrease of $f$ by an Armijo or Wolfe rule \cite[section 11.5]{GrivaNashSofer2009}.  In this sense our method is most suitable for quadratic functions $f$, and it may need additional refinements for more general, especially non-convex, objective functions.  It should be used with caution if the Hessian $\grad^2 f(x)$ varies significantly during the iteration.
+POPDIP will shorten the step in the Newton search direction \emph{only} because of the inequality constraints, and not for the ``usual'' (unconstrained) line search reasons, for instance to generate sufficient decrease of $f$ by an Armijo or Wolfe rule \cite[section 11.5]{GrivaNashSofer2009}.  In this sense our method is most suitable for quadratic functions $f$, and it may need additional refinements for more general, especially non-convex, objective functions.  For example, it should be used with caution if the Hessian $\grad^2 f(x)$ varies significantly during the iteration.
 
 POPDIP determines step sizes $\alpha_x,\alpha_\lambda$ for the inequality-constrained primal and dual variables via a condition of (strict) positivity for $x_{k+1}$ and $\lambda_{k+1}$.  Suppose $0<\kappa<1$.  For the primal variables, assuming $x_k\in S^o$ so that $x_k>0$, we require that for all $i$ such that $(\Delta x)_i < 0$,
 \begin{equation}
@@ -269,7 +270,7 @@ POPDIP determines step sizes $\alpha_x,\alpha_\lambda$ for the inequality-constr
 \end{align}
 (Compare subsection 16.7.2 in \cite{GrivaNashSofer2009}.)
 
-The optimality test in POPDIP requires that a certain merit function associated to system \eqref{eq:equalities} be smaller than a given tolerance, either in an absolute sense or relative to the initial value of the merit function.  We use a merit function which is a norm of the residual \eqref{eq:residualnewtonstep}:
+The optimality test in POPDIP requires that a certain merit function associated to system \eqref{eq:equalities} be smaller than a given tolerance, either in an absolute sense or relative to the initial value of the merit function.  We will use a merit function which is a norm of the residual \eqref{eq:residualnewtonstep}:
 \begin{equation}
     \nu(x,\tau,\lambda) = \max\{\|\grad f(x)-A^\top \tau - \lambda\|_2,\|b-Ax\|_2,\|\Lambda x\|_2\}.  \label{eq:meritfunction}
 \end{equation}
