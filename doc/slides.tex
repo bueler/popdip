@@ -1,6 +1,6 @@
 % Copyright 2022  Ed Bueler
 
-\documentclass[10pt,hyperref]{beamer}
+\documentclass[10pt,hyperref,dvipsnames]{beamer}
 
 \mode<presentation>
 {
@@ -96,12 +96,11 @@
 
 \begin{itemize}
 \item POPDIP is a Newton-type primal-dual interior point algorithm
-\item mostly covered in standard textbooks
+\item 1990s algorithm mostly covered in standard textbooks
     \begin{itemize}
     \item[$\circ$] section 16.7 in our textbook (Griva, Nash, \& Sofer, 2009)
     \item[$\circ$] chapter 19 in Nocedal \& Wright (2006)
     \end{itemize}
-\item 1990s algorithm
 \item ``POPDIP'' is just my silly name for it \dots not an acronym in use
 
 \bigskip
@@ -115,9 +114,10 @@
 \end{equation*}
 
     \begin{itemize}
+    \item[$\circ$] $f(x)$ must be smooth
+    \item[$\circ$] user must provide $\grad f(x)$ and $\grad^2 f(x)$
     \item[$\circ$] $x\in \RR^n$, $A$ is a full row rank $m\times n$ matrix, $b\in\RR^m$
     \item[$\circ$] nonnegativity constraints $x\ge 0$ on \emph{all} variables
-    \item[$\circ$] user must provide $\grad f(x)$ and $\grad^2 f(x)$
     \end{itemize}
 \end{itemize}
 \end{frame}
@@ -125,6 +125,8 @@
 
 \begin{frame}{limitations}
 
+\begin{itemize}
+\item the POPDIP algorithm is suitable for:
 \begin{equation*}
 \begin{matrix}
 \text{minimize} \qquad   & f(x) \\
@@ -132,17 +134,15 @@
                          & x \ge 0
 \end{matrix}
 \end{equation*}
-
-\vspace{10mm}
-
-\begin{itemize}
-\item POPDIP algorithm is not suitable for:
+\item it is \emph{not} suitable for:
     \begin{itemize}
     \item[$\circ$] general equality constraints ``$g_i(x)=0$''
     \item[$\circ$] general inequality constraints ``$g_i(x)\ge 0$''
     \end{itemize}
 \item see section 16.7 of Griva, Nash, \& Sofer (2009) for how to generalize it
-\item but, POPDIP \emph{can} be used as an interior-point method for linear programming (LP)
+
+\medskip
+\item however, it \emph{can} be used as an interior-point method for linear programming (LP)
     \begin{itemize}
     \item[$\circ$] when $f(x)=c^\top x$ the problem is in LP standard form
     \item[$\circ$] but no special performance improvements for LP cases
@@ -154,15 +154,15 @@
 \begin{frame}{decoding buzzwords}
 
 \begin{center}
-\emph{POPDIP is a Newton-type primal-dual interior point algorithm}
+\emph{POPDIP is a {\color{BrickRed} Newton-type} {\color{OliveGreen} primal-dual} {\color{blue} interior point} algorithm}
 \end{center}
 
 \begin{itemize}
-\item ``Newton-type'': linearize $\grad f(x)$ and use the Hessian
+\item \emph{{\color{BrickRed} Newton-type}}: linearize $\grad f(x)$ and use the Hessian
     \begin{itemize}
     \item[$\circ$] compute $p$ so that $\grad f(x_k + p) \approx \grad f(x_k) + \grad^2 f(x_k) p = \dots$
     \end{itemize}
-\item ``primal-dual'': keep track of $x$ \emph{and} Lagrange multipliers $\tau,\lambda$
+\item \emph{{\color{OliveGreen} primal-dual}}: keep track of $x$ \emph{and} Lagrange multipliers $\tau,\lambda$
     \begin{itemize}
     \item[$\circ$] Lagrangian is \qquad $\ds \mathcal{L}(x,\tau,\lambda) = f(x) - \tau^\top (Ax - b) - \lambda^\top x$
     \item[$\circ$] 1st-order KKT conditions:
@@ -173,7 +173,7 @@
 x \ge 0, \quad \lambda &\ge 0 \notag
 \end{align*}
     \end{itemize}
-\item ``interior point'': iterates $x_k$ and $\lambda_k$ are in interior of feasible sets
+\item \emph{{\color{blue} interior point}}: iterates $x_k$ and $\lambda_k$ are in interior of feasible sets
     \begin{itemize}
     \item[$\circ$] this needs more explanation
     \end{itemize}
@@ -189,7 +189,7 @@ x \ge 0, \quad \lambda &\ge 0 \notag
 \begin{itemize}
 \item problem: \quad min $f(x) = \frac{1}{2} (x_1-1)^2 + \frac{1}{2} (x_2+1)^2$
 
-\phantom{dsklfja dslfa} s.~t. $x \ge 0$
+\phantom{dsklfja dslfa} subject to $x \ge 0$
 
 \bigskip
     \begin{itemize}
@@ -204,7 +204,7 @@ x \ge 0, \quad \lambda &\ge 0 \notag
 \clip (-1.5,-1.5) rectangle (4,4);
 \fill[gray!20] (0,0) -- (3,0) -- (3,3) -- (0,3) -- cycle;
 \draw [thin, ->] (-1.5,0)--(3.2,0) node[right] {$x_1$};
-\draw [thin, ->] (0,-1.1)--(0,3) node[above]{$x_2$};
+\draw [thin, ->] (0,-1.1)--(0,3.1) node[above]{$x_2$};
 \foreach \r in {0.5,1.0,1.5,2.0}
     { \draw[gray!70] (1,-1) circle (\r); }
 \node at (1,-1) [gray,circle,fill,inner sep=1.0pt]{};
@@ -270,7 +270,7 @@ x \ge 0, \quad \lambda &\ge 0 \notag
     \end{itemize}
 
 \medskip
-\item convert to standard form:
+\item convert to standard form by adding slacks:
 \begin{equation*}
 \begin{matrix}
 \text{minimize} \qquad & z = c^\top x \\
@@ -307,8 +307,9 @@ x \ge 0, \quad \lambda &\ge 0 \notag
 \end{Verbatim}
 
 \bigskip
-\item internally, POPDIP iteration is in 13-dimensional space!
+\item internally, the POPDIP iteration is happening in 13-dimensional space!
     \begin{itemize}
+    \item[$\circ$] $\mathcal{L}(x,\tau,\lambda) = c^\top x - \tau^\top (Ax - b) - \lambda^\top x$
     \item[$\circ$] $x_k \in \RR^5$, \quad $\tau_k \in \RR^3$, \quad $\lambda_k \in \RR^5$
     \end{itemize}
 \end{itemize}
@@ -336,17 +337,19 @@ x \ge 0, \quad \lambda &\ge 0 \notag
 where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
 
     \begin{itemize}
-    \item[$\circ$] $n=+\infty$
-    \item[$\circ$] but $m=0$ equality constraints
+    \item[$\circ$] consider only functions with zero end-point values:
+    	$$S = \{v(x)\,:\, v(0)=v(1)=0 \text{ and } v(x) \ge 0\}$$
+    \item[$\circ$] $n=+\infty$-dimensional problem
+    \item[$\circ$] the obstacle is the zero function: $u\ge 0$
+    \item[$\circ$] but $m=0$ \emph{equality} constraints
     \end{itemize}
-\item discretize using piecewise-linear functions (finite elements) as shown in class:
+\item discretize using piecewise-linear functions (finite elements):
 \begin{equation*}
     f_n(u) = \Delta x \sum_{i=0}^n \tfrac{1}{2}\left(\frac{u_{i+1}-u_i}{\Delta x}\right)^2 - q(x_{i+\frac{1}{2}}) \frac{u_i + u_{i+1}}{2}
 \end{equation*}
 
     \begin{itemize}
-    \item[$\circ$] $u\in\RR^n$
-    \item[$\circ$] with $u\ge 0$ inequality constraints
+    \item[$\circ$] now $u\in\RR^n$ must have nonnegative entries ($u_i\ge 0$)
     \end{itemize}
 \end{itemize}
 \end{frame}
@@ -433,16 +436,29 @@ where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
 \end{frame}
 
 
+\begin{frame}{trying it yourself}
+
+\begin{itemize}
+\item clone the Github repository:
+
+\begin{center}
+\href{https://github.com/bueler/popdip}{\texttt{github.com/bueler/popdip}}
+\end{center}
+
+    \begin{itemize}
+    \item[$\circ$] or download a \texttt{.zip} release from that website
+    \end{itemize}
+
+\item see the documentation PDF \texttt{doc.pdf} in the downloaded directory/folder
+\end{itemize}
+\end{frame}
+
+
 \begin{frame}[fragile]
 \frametitle{trying it yourself}
 
 \begin{itemize}
-\item clone the Github repository:\hfill \href{https://github.com/bueler/popdip}{\texttt{github.com/bueler/popdip}}
-    \begin{itemize}
-    \item[$\circ$] or download a \texttt{.zip} release from that website
-    \item[$\circ$] see documentation PDF \texttt{doc.pdf}
-    \end{itemize}
-\item POPDIP algorithm is implemented by a \Matlab code
+\item POPDIP algorithm is a \Matlab function:
 
 \medskip
 \centerline{\texttt{function [x,tau,lam] = popdip(x0,f,A,b)}}
@@ -450,18 +466,20 @@ where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
 \medskip
     \begin{itemize}
     \item[$\circ$] input \texttt{x0} $\in\RR^n$ must have positive entries
-    \item[$\circ$] outputs \texttt{x} $\in\RR^n$, \texttt{tau} $\in\RR^m$, \texttt{lam} $\in\RR^n$
-    \item[$\circ$] user-provided function \texttt{f} has signature
+    \item[$\circ$] inputs \texttt{A}, \texttt{b} are $m\times n$ and $m\times 1$
+    \item[$\circ$] if \texttt{A=[]}, \texttt{b=[]} then $m=0$ and equality constraints are ignored
+    \item[$\circ$] user-provided function \texttt{f} must have signature
 
 \medskip
 \centerline{\texttt{function [fx,dfx,Hfx] = f(x)}}
 
 \medskip
     where \texttt{fx} $=f(x)$, \texttt{dfx} $=\grad f(x)$, \texttt{Hfx} $= \grad^2 f(x)$
+    \item[$\circ$] output gives last iterate: \texttt{x} $\in\RR^n$, \texttt{tau} $\in\RR^m$, \texttt{lam} $\in\RR^n$
     \item[$\circ$] see \texttt{help popdip} for more control of solver parameters
     \end{itemize}
 
-\item command line:
+\item command line examples:
 \begin{Verbatim}[fontsize=\small]
 >> help popdip
 >> small                          % run example 1
