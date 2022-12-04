@@ -96,15 +96,17 @@
 
 \begin{itemize}
 \item POPDIP is a Newton-type primal-dual interior point algorithm
+    \begin{itemize}
+    \item[$\circ$] ``POPDIP'' is just my silly name for it \dots not a thing
+    \end{itemize}
 \item 1990s algorithm mostly covered in standard textbooks
     \begin{itemize}
     \item[$\circ$] section 16.7 in our textbook (Griva, Nash, \& Sofer, 2009)
     \item[$\circ$] chapter 19 in Nocedal \& Wright (2006)
     \end{itemize}
-\item ``POPDIP'' is just my silly name for it \dots not an acronym in use
 
 \bigskip
-\item general problem it should solve:
+\item general problem it claims to solve:
 \begin{equation*}
 \begin{matrix}
 \text{minimize} \qquad   & f(x) \\
@@ -116,7 +118,7 @@
     \begin{itemize}
     \item[$\circ$] $f(x)$ must be smooth
     \item[$\circ$] user must provide $\grad f(x)$ and $\grad^2 f(x)$
-    \item[$\circ$] $x\in \RR^n$, $A$ is a full row rank $m\times n$ matrix, $b\in\RR^m$
+    \item[$\circ$] $x\in \RR^n$, $A$ is a full row rank $m\times n$ matrix ($m\le n$), $b\in\RR^m$
     \item[$\circ$] nonnegativity constraints $x\ge 0$ on \emph{all} variables
     \end{itemize}
 \end{itemize}
@@ -126,7 +128,7 @@
 \begin{frame}{limitations}
 
 \begin{itemize}
-\item the POPDIP algorithm is suitable for:
+\item the POPDIP algorithm \emph{is} suitable for:
 \begin{equation*}
 \begin{matrix}
 \text{minimize} \qquad   & f(x) \\
@@ -138,13 +140,14 @@
     \begin{itemize}
     \item[$\circ$] general equality constraints ``$g_i(x)=0$''
     \item[$\circ$] general inequality constraints ``$g_i(x)\ge 0$''
+    \item[$\circ$] problems where a subset of the variables have nonnegativity constraints
     \end{itemize}
 \item see section 16.7 of Griva, Nash, \& Sofer (2009) for how to generalize it
 
 \medskip
 \item however, it \emph{can} be used as an interior-point method for linear programming (LP)
     \begin{itemize}
-    \item[$\circ$] when $f(x)=c^\top x$ the problem is in LP standard form
+    \item[$\circ$] if $f(x)=c^\top x$ then problem is LP standard form
     \item[$\circ$] but no special performance improvements for LP cases
     \end{itemize}
 \end{itemize}
@@ -160,7 +163,7 @@
 \begin{itemize}
 \item \emph{{\color{BrickRed} Newton-type}}: linearize $\grad f(x)$ and use the Hessian
     \begin{itemize}
-    \item[$\circ$] compute $p$ so that $\grad f(x_k + p) \approx \grad f(x_k) + \grad^2 f(x_k) p = \dots$
+    \item[$\circ$] compute $p$ so that $\grad f(x_k + p) \approx \grad f(x_k) + \grad^2 f(x_k) p$ satisfies optimality
     \end{itemize}
 \item \emph{{\color{OliveGreen} primal-dual}}: keep track of $x$ \emph{and} Lagrange multipliers $\tau,\lambda$
     \begin{itemize}
@@ -223,10 +226,10 @@ x \ge 0, \quad \lambda &\ge 0 \notag
 
 
 \begin{frame}[fragile]
-\frametitle{example 1 (\texttt{small.m}) results}
+\frametitle{example 1 results (\texttt{small.m})}
 
 \begin{itemize}
-\item result starting from $x_0=(2,2)^\top$?
+\item result starting from $x_0=(2,2)^\top$
 \item superlinear convergence:
 \begin{Verbatim}[fontsize=\scriptsize]
 >> small
@@ -254,7 +257,7 @@ x \ge 0, \quad \lambda &\ge 0 \notag
 \begin{frame}{example 2: $f$ linear, $n=5$, $m=3$}
 
 \begin{itemize}
-\item remember our classic 2D LP problem?
+\item remember this 2D LP problem?
 \begin{equation*}
 \begin{matrix}
 \text{minimize} \qquad & z = -x_1 - 2x_2 \\
@@ -266,7 +269,7 @@ x \ge 0, \quad \lambda &\ge 0 \notag
 \end{equation*}
 
     \begin{itemize}
-    \item[$\circ$] section 5.2 uses this example to introduce simplex method
+    \item[$\circ$] section 5.2 uses this example to introduce the simplex method
     \end{itemize}
 
 \medskip
@@ -288,11 +291,13 @@ x \ge 0, \quad \lambda &\ge 0 \notag
 
 
 \begin{frame}[fragile]
-\frametitle{example 2 (\texttt{linear.m}) results}
+\frametitle{example 2 results (\texttt{linear.m})}
 
 \begin{itemize}
-\item results from starting at $x_0=(1,1)^\top$:
-\begin{Verbatim}[fontsize=\scriptsize]
+\item results starting at $x_0=(1,1)^\top$:
+
+\bigskip
+\begin{Verbatim}[fontsize=\tiny]
 >> linear
         x_1                  x_2
   0:    1.000000000000000    1.000000000000000
@@ -306,21 +311,15 @@ x \ge 0, \quad \lambda &\ge 0 \notag
   8:    3.000000000000000    5.000000000000000
 \end{Verbatim}
 
-\bigskip
-\item internally, the POPDIP iteration is happening in 13-dimensional space!
+\vspace{-31mm}
+\hfill \includegraphics[width=0.36\textwidth]{figs/linear.pdf}
+
+\item internally, the iteration is happening in 13-dimensional space!
     \begin{itemize}
     \item[$\circ$] $\mathcal{L}(x,\tau,\lambda) = c^\top x - \tau^\top (Ax - b) - \lambda^\top x$
     \item[$\circ$] $x_k \in \RR^5$, \quad $\tau_k \in \RR^3$, \quad $\lambda_k \in \RR^5$
     \end{itemize}
 \end{itemize}
-\end{frame}
-
-
-\begin{frame}{example 2 (\texttt{linear.m}) results}
-
-\begin{center}
-\includegraphics[width=0.4\textwidth]{figs/linear.pdf}
-\end{center}
 \end{frame}
 
 
@@ -368,7 +367,7 @@ where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
 \end{frame}
 
 
-\begin{frame}{example 3: results}
+\begin{frame}{example 3 results (\texttt{obstacle.m})}
 
 \begin{itemize}
 \item results for $n=25$
@@ -380,58 +379,216 @@ where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
 \end{center}
 \end{frame}
 
-\begin{frame}{example 3: results}
-
-\begin{itemize}
-\item results for $n=25$
-\end{itemize}
+\begin{frame}{example 3 results (\texttt{obstacle.m})}
 
 \medskip
 \begin{center}
-\includegraphics[width=0.8\textwidth]{figs/errorobstacle.pdf}
+\includegraphics[width=0.9\textwidth]{figs/errorobstacle.pdf}
 \end{center}
 \end{frame}
 
 
-\begin{frame}{how it works: modified KKT conditions explanation}
+\begin{frame}{how does POPDIP work?}
 
 \begin{itemize}
-\item y
+\item but what is the algorithm?
+\item easiest to explain it starting \emph{without} equality constraints $Ax=b$
+\item what are KKT conditions of this problem?
+\begin{equation*}
+\begin{matrix}
+\text{minimize} \qquad & f(x) \\
+\text{subject to} \qquad & x \ge 0
+\end{matrix}
+\end{equation*}
+\item[] \emph{answer:} use Lagrangian $L(x,\lambda) = f(x) - \lambda^\top x$; get
+\begin{align*}
+\grad f(x) - \lambda &= 0   &&\text{\emph{stationarity}} \\
+                   x &\ge 0 &&\text{\emph{primal feasibility}} \\
+             \lambda &\ge 0 &&\text{\emph{dual feasibility}} \\
+        x_i \lambda_i&= 0 \quad \text{ for } i=1,\dots,n && \text{\emph{complementarity}}
+\end{align*}
+\item note both $x$ and $\lambda$ are in the feasible set
+	$$S = \{v \in \RR^n \,:\, v\ge 0\}$$
 \end{itemize}
 \end{frame}
 
 
-\begin{frame}{how it works: logarithmic barrier explanation}
+\begin{frame}{POPDIP explanation 1: modified KKT conditions}
 
+\textbf{explanation.}  at each iteration POPDIP approximately solves \emph{modified} KKT conditions which keep the primal/dual iterates $x_k$, $\lambda_k$ in the \emph{interior} of $S$
+
+\bigskip
 \begin{itemize}
-\item y
-\end{itemize}
-\end{frame}
+\item let $\mu_k>0$ be a sequence decreasing to zero
+\item next values $x_{k+1}$, $\lambda_{k+1}$ approximately solve
+\begin{align*}
+\grad f(x) - \lambda &= 0   &&\text{\emph{stationarity}} \\
+                   x &\ge 0 &&\text{\emph{primal feasibility}} \\
+             \lambda &\ge 0 &&\text{\emph{dual feasibility}} \\
+       x_i \lambda_i &= \mu_k && \text{\alert{\emph{modified complementarity}}}
+\end{align*}
 
-
-\begin{frame}{fixme}
-
-\begin{itemize}
-\item the \alert{POPDIP algorithm}:
-
-\medskip
-\mbox{\parbox{\textwidth}{%
-\begin{itemize}
-\item[1.] User supplies $x_0$.
-
-\medskip
-\item[2.] For $k=0,1,2,\dots$
     \begin{itemize}
-    \item[(i)] If $x_k$ is optimal then stop.
-
-    \medskip
-    \item[(ii)] Search direction is
-       $$p_k = - \grad f(x_k)$$
-    \item[(iii)] Determine step length $\alpha_k>0$.  Let $x_{k+1}=x_k+\alpha_k p_k$.
+    \item[$\circ$] $\mu_k>0$: \quad $x_{k+1} > 0$ and $\lambda_{k+1} > 0$
+    \item[] \phantom{$\mu_k>0$:} \quad so inequalities always inactive!
+    \item[$\circ$] Newton method: linearize $\grad f(x)$ at current iterate $x_k$, $\lambda_k$
+        \begin{itemize}
+        \item[$\bullet$] user must supply Hessian $\grad^2 f(x)$
+        \end{itemize}
+    \item[$\circ$] once a search direction is found, the inequality constraints (\emph{ratio test}) determine how far to move
     \end{itemize}
-\end{itemize}%
-}}
+\end{itemize}
+\end{frame}
 
+
+\begin{frame}{POPDIP explanation 2: logarithmic barrier}
+
+\textbf{explanation.}  at each iteration POPDIP approximately solves an \emph{unconstrained} problem on the interior of $S$, with a \emph{logarithmic barrier} stopping the iterates from reaching the boundaries of $S$
+
+\bigskip
+\begin{itemize}
+\item define a new objective with a logarithmic barrier:
+\begin{equation*}
+\beta_\mu(x) = f(x) - \mu_k \sum_{i=1}^n \ln x_i
+\end{equation*}
+
+\vspace{-1mm}
+    \begin{itemize}
+    \item[$\circ$] $\ds \lim_{x\to 0^+} \ln x = -\infty$
+    \end{itemize}
+\item solve $\grad \beta_\mu(x)=0$: \quad $\ds \grad f(x) - \mu_k \sum_{i=1}^n \frac{1}{x_i} e_i = 0$
+\item combine symbols: $\ds \lambda_i = \frac{\mu_k}{x_i}$
+\item get system:
+\begin{align*}
+\grad f(x) - \lambda &= 0 \\
+       x_i \lambda_i &= \mu_k
+\end{align*}
+
+\vspace{-3mm}
+    \begin{itemize}
+    \item[$\circ$] same equations as on previous slide!
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{POPDIP general case: modified KKT}
+
+\begin{itemize}
+\item back to general problem:
+\begin{equation*}
+\begin{matrix}
+\text{minimize} \qquad & f(x) \\
+\text{subject to} \qquad & A x = b \\
+ & x \ge 0
+\end{matrix}
+\end{equation*}
+\item Lagrangian:
+    $$L(x,\tau,\lambda) = f(x) - \tau^\top (Ax-b) - \lambda^\top x$$
+\item modified KKT:
+\begin{align*}
+\grad f(x) - A^\top \tau - \lambda &= 0   &&\text{\emph{stationarity}} \\
+                A x &= b &&\text{\emph{primal feasibility}} \\
+                   x &\ge 0 &&\text{\emph{primal feasibility}} \\
+             \lambda &\ge 0 &&\text{\emph{dual feasibility}} \\
+       x_i \lambda_i &= \mu_k && \text{\alert{\emph{modified complementarity}}}
+\end{align*}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{POPDIP general case: linearize and symmetrize}
+
+\begin{itemize}
+\item next iterate:
+    $$x_{k+1} = x_k + \Delta x, \quad \tau_{k+1} = \tau_k + \Delta \tau, \quad \lambda_{k+1} = \lambda_k + \Delta \lambda$$
+\item linearize the modified KKT equations:
+\begin{align*}
+\grad f(x_k) + \grad^2 f(x_k) \Delta x - A^\top \tau_k - A^\top \Delta \tau - \lambda_k - \Delta \lambda &= 0 \\
+-A x_k - A \Delta x + b &= 0 \\
+(\lambda_k)_i (x_k)_i + (x_k)_i (\Delta\lambda)_i + (\lambda_k)_i (\Delta x)_i &= \mu_k
+\end{align*}
+\item simplify and symmetrize into:
+\begin{align*}
+\begin{bmatrix}
+\grad^2 f(x_k) + X_k^{-1}\Lambda_k & -A^\top \\
+-A             & 0
+\end{bmatrix}
+\begin{bmatrix}
+\Delta x \\
+\Delta \tau
+\end{bmatrix}
+&=
+\begin{bmatrix}
+-\grad f(x_k) + A^\top \tau_k + \mu_k X_k^{-1} e \\
+A x_k - b
+\end{bmatrix} \\
+\Delta\lambda &= \mu_k X_k^{-1} e - \lambda_k - X_k^{-1} \Lambda_k \Delta x
+\end{align*}
+
+    \begin{itemize}
+    \item[$\circ$] $X_k$, $\Lambda_k$ are diagonal matrices with $x_k$, $\lambda_k$ on diagonal
+    \item[$\circ$] $e=(1,\dots,1)^\top$
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{the \alert{POPDIP algorithm}}
+
+\begin{itemize}
+\footnotesize
+\item[1.]  given $x_0 > 0$
+\item[2.]  determine initial dual variables $\tau_0=0$ and $\lambda_0>0$
+\item[3.]  for $k=0,1,2,\dots,\text{\texttt{maxiters}}-1$
+    \begin{itemize}
+    \footnotesize
+    \item[] $g_k = \grad f(x_k)$
+
+\smallskip
+    \item[] $\nu_k = \max\{\|g_k-A^\top \tau_k - \lambda_k\|_2,\|b-Ax_k\|_2,\|\Lambda_k x_k\|_2\}$  \hfill \emph{merit function}
+
+\smallskip
+    \item[] if $\nu_k<\text{\texttt{atol}}$ or $\nu_k<(\text{\texttt{rtol}})\, \nu_0$ then stop
+
+\smallskip
+    \item[] $\mu_k = \min\{\theta \nu_k,\nu_k^2\}$ \hfill \emph{barrier parameter}
+
+\smallskip
+    \item[] solve for $\Delta x$ and $\Delta \tau$: \hfill \emph{Newton step}
+    $$\begin{bmatrix}
+\grad^2 f(x_k) + X_k^{-1}\Lambda_k & -A^\top \\
+-A             & 0
+\end{bmatrix}
+\begin{bmatrix}
+\Delta x \\
+\Delta \tau
+\end{bmatrix}
+=
+\begin{bmatrix}
+-g_k + A^\top \tau_k + \mu_k X_k^{-1} e \\
+A x_k - b
+\end{bmatrix}$$
+    \item[] $\Delta\lambda = \mu_k X_k^{-1} e - \lambda_k - X_k^{-1} \Lambda_k \Delta x$ \hfill \emph{part of Newton step}
+
+\smallskip
+    \item[] $\kappa = \max\{\bar\kappa,1-\nu_k\}$
+
+\smallskip
+    \item[] $\alpha_x = \min_{1\le i\le n} \left\{1, \,-\kappa \frac{(x_k)_i}{(\Delta x)_i} \,:\, (\Delta x)_i < 0\right\}$ \hfill \emph{primal ratio test}
+
+\smallskip
+    \item[] $\alpha_\lambda = \min_{1\le i\le n} \left\{1, \,-\kappa \frac{(\lambda_k)_i}{(\Delta \lambda)_i} \,:\, (\Delta \lambda)_i < 0\right\}$ \hfill \emph{dual ratio test}
+
+\smallskip
+    \item[] $x_{k+1} = x_k + \alpha_x \Delta x$
+
+\smallskip
+    \item[] $\tau_{k+1} = \tau_k + \Delta \tau$
+
+\smallskip
+    \item[] $\lambda_{k+1} = \lambda_k + \alpha_\lambda \Delta \lambda$
+    \end{itemize}
 \end{itemize}
 \end{frame}
 
@@ -449,7 +606,7 @@ where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
     \item[$\circ$] or download a \texttt{.zip} release from that website
     \end{itemize}
 
-\item see the documentation PDF \texttt{doc.pdf} in the downloaded directory/folder
+\item see documentation PDF \texttt{doc.pdf} in the download
 \end{itemize}
 \end{frame}
 
@@ -458,7 +615,7 @@ where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
 \frametitle{trying it yourself}
 
 \begin{itemize}
-\item POPDIP algorithm is a \Matlab function:
+\item POPDIP is a \Matlab function:
 
 \medskip
 \centerline{\texttt{function [x,tau,lam] = popdip(x0,f,A,b)}}
@@ -466,8 +623,6 @@ where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
 \medskip
     \begin{itemize}
     \item[$\circ$] input \texttt{x0} $\in\RR^n$ must have positive entries
-    \item[$\circ$] inputs \texttt{A}, \texttt{b} are $m\times n$ and $m\times 1$
-    \item[$\circ$] if \texttt{A=[]}, \texttt{b=[]} then $m=0$ and equality constraints are ignored
     \item[$\circ$] user-provided function \texttt{f} must have signature
 
 \medskip
@@ -475,11 +630,13 @@ where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
 
 \medskip
     where \texttt{fx} $=f(x)$, \texttt{dfx} $=\grad f(x)$, \texttt{Hfx} $= \grad^2 f(x)$
+    \item[$\circ$] inputs \texttt{A}, \texttt{b} are $m\times n$ and $m\times 1$
+    \item[$\circ$] if \texttt{A=[]}, \texttt{b=[]} then $m=0$ and equality constraints are ignored
     \item[$\circ$] output gives last iterate: \texttt{x} $\in\RR^n$, \texttt{tau} $\in\RR^m$, \texttt{lam} $\in\RR^n$
-    \item[$\circ$] see \texttt{help popdip} for more control of solver parameters
+    \item[$\circ$] see \texttt{doc.pdf} regarding solver parameters
     \end{itemize}
 
-\item command line examples:
+\item run examples using driver programs:
 \begin{Verbatim}[fontsize=\small]
 >> help popdip
 >> small                          % run example 1
