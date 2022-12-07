@@ -116,10 +116,10 @@
 \end{equation*}
 
     \begin{itemize}
+    \item[$\circ$] user must provide: $f(x)$, $\grad f(x)$, $\grad^2 f(x)$, $A$, $b$
     \item[$\circ$] $f(x)$ must be smooth
-    \item[$\circ$] user must provide $\grad f(x)$ and $\grad^2 f(x)$
     \item[$\circ$] $x\in \RR^n$, $A$ is a full row rank $m\times n$ matrix ($m\le n$), $b\in\RR^m$
-    \item[$\circ$] nonnegativity constraints $x\ge 0$ on \emph{all} variables
+    \item[$\circ$] note nonnegativity constraints $x\ge 0$ on \emph{all} variables
     \end{itemize}
 \end{itemize}
 \end{frame}
@@ -145,7 +145,7 @@
 \item see section 16.7 of Griva, Nash, \& Sofer (2009) for how to generalize it
 
 \medskip
-\item however, it \emph{can} be used as an interior-point method for linear programming (LP)
+\item POPDIP \emph{can} be used as an interior-point method for linear programming (LP)
     \begin{itemize}
     \item[$\circ$] if $f(x)=c^\top x$ then problem is LP standard form
     \item[$\circ$] but no special performance improvements for LP cases
@@ -176,7 +176,7 @@
 x \ge 0, \quad \lambda &\ge 0 \notag
 \end{align*}
     \end{itemize}
-\item \emph{{\color{blue} interior point}}: iterates $x_k$ and $\lambda_k$ are in interior of feasible sets
+\item \emph{{\color{blue} interior point}}: iterates $x_k$ and $\lambda_k$ are \emph{both} in the interiors
     \begin{itemize}
     \item[$\circ$] this needs more explanation
     \end{itemize}
@@ -218,7 +218,7 @@ x \ge 0, \quad \lambda &\ge 0 \notag
 \item Lagrangian and KKT conditions:
 \begin{align*}
 && \grad f(x) - \lambda &= 0 \\
-\mathcal{L}(x,\lambda) &= f(x) - \lambda^\top x & \lambda_i x_i &=0 \notag \\
+\mathcal{L}(x,\lambda) &= f(x) - \lambda^\top x, & \lambda_i x_i &=0 \notag \\
 && x \ge 0, \quad \lambda &\ge 0 \notag
 \end{align*}
 \end{itemize}
@@ -326,7 +326,7 @@ x \ge 0, \quad \lambda &\ge 0 \notag
 \begin{frame}{example 3: $f$ quadratic, $n$ as large as you want, $m=0$}
 
 \begin{itemize}
-\item continuum problem is an \emph{obstacle problem}:
+\item comes from an \emph{obstacle problem} (continuum):
 \begin{equation*}
 \begin{matrix}
 \text{minimize} \qquad & f(u) \\
@@ -339,8 +339,8 @@ where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
     \item[$\circ$] consider only functions with zero end-point values:
     	$$S = \{v(x)\,:\, v(0)=v(1)=0 \text{ and } v(x) \ge 0\}$$
     \item[$\circ$] $n=+\infty$-dimensional problem
-    \item[$\circ$] the obstacle is the zero function: $u\ge 0$
-    \item[$\circ$] but $m=0$ \emph{equality} constraints
+    \item[$\circ$] the ``obstacle'' is the zero function: $u\ge 0$
+    \item[$\circ$] but no \emph{equality} constraints ($m=0$)
     \end{itemize}
 \item discretize using piecewise-linear functions (finite elements):
 \begin{equation*}
@@ -348,7 +348,7 @@ where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
 \end{equation*}
 
     \begin{itemize}
-    \item[$\circ$] now $u\in\RR^n$ must have nonnegative entries ($u_i\ge 0$)
+    \item[$\circ$] $u\in\RR^n$ must have nonnegative entries ($u_i\ge 0$)
     \end{itemize}
 \end{itemize}
 \end{frame}
@@ -429,13 +429,12 @@ where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
 \end{align*}
 
     \begin{itemize}
-    \item[$\circ$] $\mu_k>0$: \quad $x_{k+1} > 0$ and $\lambda_{k+1} > 0$
-    \item[] \phantom{$\mu_k>0$:} \quad so inequalities always inactive!
-    \item[$\circ$] Newton method: linearize $\grad f(x)$ at current iterate $x_k$, $\lambda_k$
+    \item[$\circ$] $\mu_k>0$: \quad $x_{k+1} > 0$ and $\lambda_{k+1} > 0$ \, (inequalities always inactive!)
+    \item[$\circ$] Newton method: linearize $\grad f(x)$ at current iterate $x_k$, $\lambda_k$ {\large\strut}
         \begin{itemize}
         \item[$\bullet$] user must supply Hessian $\grad^2 f(x)$
         \end{itemize}
-    \item[$\circ$] once a search direction is found, the inequality constraints (\emph{ratio test}) determine how far to move
+    \item[$\circ$] once a search direction is found, the inequality constraints determine how far to move \dots \quad we use \emph{ratio tests} on both $x$ and $\lambda$
     \end{itemize}
 \end{itemize}
 \end{frame}
@@ -443,18 +442,18 @@ where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
 
 \begin{frame}{POPDIP explanation 2: logarithmic barrier}
 
-\textbf{explanation.}  at each iteration POPDIP approximately solves an \emph{unconstrained} problem on the interior of $S$, with a \emph{logarithmic barrier} stopping the iterates from reaching the boundaries of $S$
+\textbf{explanation.}  at each iteration POPDIP approximately solves an \emph{unconstrained} problem on the interior of $S$, and a \emph{logarithmic barrier} stops the iterates from reaching the boundaries of $S$
 
 \bigskip
 \begin{itemize}
 \item define a new objective with a logarithmic barrier:
 \begin{equation*}
-\beta_\mu(x) = f(x) - \mu_k \sum_{i=1}^n \ln x_i
+\beta_\mu(x) = f(x) - \mu_k \sum_{i=1}^n \log x_i
 \end{equation*}
 
 \vspace{-1mm}
     \begin{itemize}
-    \item[$\circ$] $\ds \lim_{x\to 0^+} \ln x = -\infty$
+    \item[$\circ$] recall: \quad $\ds \lim_{x\to 0^+} \log x = -\infty$
     \end{itemize}
 \item solve $\grad \beta_\mu(x)=0$: \quad $\ds \grad f(x) - \mu_k \sum_{i=1}^n \frac{1}{x_i} e_i = 0$
 \item combine symbols: $\ds \lambda_i = \frac{\mu_k}{x_i}$
