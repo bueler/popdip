@@ -1,4 +1,4 @@
-% Copyright 2022  Ed Bueler
+% Copyright 2022, 2024  Ed Bueler
 
 \documentclass[10pt,hyperref,dvipsnames]{beamer}
 
@@ -82,7 +82,7 @@
 
 \institute[MATH 661]{MATH 661 Optimization}
 
-\date{Fall 2022}
+\date{Fall 2024 (version 2)}
 
 \begin{document}
 \beamertemplatenavigationsymbolsempty
@@ -106,7 +106,7 @@
     \end{itemize}
 
 \bigskip
-\item general problem it claims to solve:
+\item general problem it solves:
 \begin{equation*}
 \begin{matrix}
 \text{minimize} \qquad   & f(x) \\
@@ -116,11 +116,11 @@
 \end{equation*}
 
     \begin{itemize}
-    \item[$\circ$] user must provide: $f(x)$, $\grad f(x)$, $\grad^2 f(x)$, $A$, $b$
+    \item[$\circ$] $x\in \RR^n$; nonnegativity constraints $x\ge 0$ on \emph{all} variables
+    \item[$\circ$] $A$ is a full row rank $m\times n$ matrix ($m\le n$), $b\in\RR^m$
     \item[$\circ$] $f(x)$ must be smooth
-    \item[$\circ$] $x\in \RR^n$, $A$ is a full row rank $m\times n$ matrix ($m\le n$), $b\in\RR^m$
-    \item[$\circ$] note nonnegativity constraints $x\ge 0$ on \emph{all} variables
     \end{itemize}
+\item user must provide: $f(x)$, $\grad f(x)$, $\grad^2 f(x)$, $A$, $b$
 \end{itemize}
 \end{frame}
 
@@ -128,27 +128,19 @@
 \begin{frame}{limitations}
 
 \begin{itemize}
-\item the POPDIP algorithm \emph{is} suitable for:
-\begin{equation*}
-\begin{matrix}
-\text{minimize} \qquad   & f(x) \\
-\text{subject to} \qquad & A x = b \\
-                         & x \ge 0
-\end{matrix}
-\end{equation*}
-\item it is \emph{not} suitable for:
-    \begin{itemize}
-    \item[$\circ$] general equality constraints ``$g_i(x)=0$''
-    \item[$\circ$] general inequality constraints ``$g_i(x)\ge 0$''
-    \item[$\circ$] problems where a subset of the variables have nonnegativity constraints
-    \end{itemize}
-\item see section 16.7 of Griva, Nash, \& Sofer (2009) for how to generalize it
-
-\medskip
-\item POPDIP \emph{can} be used as an interior-point method for linear programming (LP)
+\item POPDIP can be used as an interior-point method for linear programming (LP)
     \begin{itemize}
     \item[$\circ$] if $f(x)=c^\top x$ then problem is LP standard form
     \item[$\circ$] but no special performance improvements for LP cases
+    \end{itemize}
+
+\medskip
+\item it is \emph{not} suitable for:
+    \begin{itemize}
+    \item[$\circ$] general equality constraints $g_i(x)=0$
+    \item[$\circ$] general inequality constraints $g_i(x)\ge 0$
+    \item[$\circ$] only a subset of the variables have nonnegativity constraints
+    \item[$\circ$] see section 16.7 of GNS09\footnote{Griva, Nash, and Sofer, \emph{Linear and Nonlinear Optimization}, 2nd ed., SIAM Press 2009} for how to generalize to such cases
     \end{itemize}
 \end{itemize}
 \end{frame}
@@ -165,9 +157,9 @@
     \begin{itemize}
     \item[$\circ$] compute $p$ so that $\grad f(x_k + p) \approx \grad f(x_k) + \grad^2 f(x_k) p$ satisfies optimality
     \end{itemize}
-\item \emph{{\color{OliveGreen} primal-dual}}: keep track of $x$ \emph{and} Lagrange multipliers $\tau,\lambda$
+\item \emph{{\color{OliveGreen} primal-dual}}: keep track of $x$ \emph{and} Lagrange multipliers
     \begin{itemize}
-    \item[$\circ$] Lagrangian is \qquad $\ds \mathcal{L}(x,\tau,\lambda) = f(x) - \tau^\top (Ax - b) - \lambda^\top x$
+    \item[$\circ$] Lagrangian is \qquad $\ds L(x,\tau,\lambda) = f(x) - \tau^\top (Ax - b) - \lambda^\top x$
     \item[$\circ$] 1st-order KKT conditions:
 \begin{align*}
 \grad f(x) - A^\top \tau - \lambda &= 0 \\
@@ -180,9 +172,6 @@ x \ge 0, \quad \lambda &\ge 0 \notag
     \begin{itemize}
     \item[$\circ$] this needs more explanation
     \end{itemize}
-
-\medskip
-\item more about the algorithm after example applications!
 \end{itemize}
 \end{frame}
 
@@ -190,6 +179,7 @@ x \ge 0, \quad \lambda &\ge 0 \notag
 \begin{frame}{example 1: $f$ quadratic, $n=2$, $m=0$}
 
 \begin{itemize}
+\item more about the algorithm after 3 example applications
 \item problem: \quad min $f(x) = \frac{1}{2} (x_1-1)^2 + \frac{1}{2} (x_2+1)^2$
 
 \phantom{dsklfja dslfa} subject to $x \ge 0$
@@ -215,11 +205,13 @@ x \ge 0, \quad \lambda &\ge 0 \notag
 \node[xshift=3mm,yshift=+3mm] at (1,0) {$x_*$};
 \end{tikzpicture}
 
-\item Lagrangian and KKT conditions:
+\vspace{-10mm}
+\item Lagrangian: \, $L(x,\lambda) = f(x) - \lambda^\top x$
+\item KKT conditions:
 \begin{align*}
-&& \grad f(x) - \lambda &= 0 \\
-\mathcal{L}(x,\lambda) &= f(x) - \lambda^\top x, & \lambda_i x_i &=0 \notag \\
-&& x \ge 0, \quad \lambda &\ge 0 \notag
+\grad f(x) - \lambda &= 0 \\
+\lambda_i x_i &=0 \\
+x \ge 0, \quad \lambda &\ge 0
 \end{align*}
 \end{itemize}
 \end{frame}
@@ -230,7 +222,7 @@ x \ge 0, \quad \lambda &\ge 0 \notag
 
 \begin{itemize}
 \item result starting from $x_0=(2,2)^\top$
-\item superlinear convergence:
+\item apparent superlinear convergence:
 \begin{Verbatim}[fontsize=\scriptsize]
 >> small
         x_1                  x_2
@@ -269,7 +261,7 @@ x \ge 0, \quad \lambda &\ge 0 \notag
 \end{equation*}
 
     \begin{itemize}
-    \item[$\circ$] section 5.2 uses this example to introduce the simplex method
+    \item[$\circ$] GNS09 section 5.2  example for introducing the simplex method
     \end{itemize}
 
 \medskip
@@ -316,14 +308,14 @@ x \ge 0, \quad \lambda &\ge 0 \notag
 
 \item internally, the iteration is happening in 13-dimensional space!
     \begin{itemize}
-    \item[$\circ$] $\mathcal{L}(x,\tau,\lambda) = c^\top x - \tau^\top (Ax - b) - \lambda^\top x$
     \item[$\circ$] $x_k \in \RR^5$, \quad $\tau_k \in \RR^3$, \quad $\lambda_k \in \RR^5$
+    \item[$\circ$] Lagrangian: \, $L(x,\tau,\lambda) = c^\top x - \tau^\top (Ax - b) - \lambda^\top x$
     \end{itemize}
 \end{itemize}
 \end{frame}
 
 
-\begin{frame}{example 3: $f$ quadratic, $n$ as large as you want, $m=0$}
+\begin{frame}{example 3: $f$ quadratic, $n$ large, $m=0$}
 
 \begin{itemize}
 \item comes from an \emph{obstacle problem} (continuum):
@@ -338,7 +330,7 @@ where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
     \begin{itemize}
     \item[$\circ$] consider only functions with zero end-point values:
     	$$S = \{v(x)\,:\, v(0)=v(1)=0 \text{ and } v(x) \ge 0\}$$
-    \item[$\circ$] $n=+\infty$-dimensional problem
+    \item[$\circ$] $\infty$-dimensional problem ($n=+\infty$)
     \item[$\circ$] the ``obstacle'' is the zero function: $u\ge 0$
     \item[$\circ$] but no \emph{equality} constraints ($m=0$)
     \end{itemize}
@@ -346,10 +338,6 @@ where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
 \begin{equation*}
     f_n(u) = \Delta x \sum_{i=0}^n \tfrac{1}{2}\left(\frac{u_{i+1}-u_i}{\Delta x}\right)^2 - q(x_{i+\frac{1}{2}}) \frac{u_i + u_{i+1}}{2}
 \end{equation*}
-
-    \begin{itemize}
-    \item[$\circ$] $u\in\RR^n$ must have nonnegative entries ($u_i\ge 0$)
-    \end{itemize}
 \end{itemize}
 \end{frame}
 
@@ -357,7 +345,7 @@ where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
 \begin{frame}{example 3: exactly-known continuum solution}
 
 \begin{itemize}
-\item testing is based on an exactly-known solution to the continuum problem
+\item test using an exactly-known solution to the continuum problem:
 \end{itemize}
 
 \medskip
@@ -391,7 +379,6 @@ where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
 \begin{frame}{how does POPDIP work?}
 
 \begin{itemize}
-\item but what is the algorithm?
 \item easiest to explain it starting \emph{without} equality constraints $Ax=b$
 \item what are KKT conditions of this problem?
 \begin{equation*}
@@ -402,12 +389,12 @@ where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
 \end{equation*}
 \item[] \emph{answer:} use Lagrangian $L(x,\lambda) = f(x) - \lambda^\top x$; get
 \begin{align*}
-\grad f(x) - \lambda &= 0   &&\text{\emph{stationarity}} \\
+\grad f(x) - \lambda &= 0   &&\text{\emph{stationarity} \quad ($\grad_x L=0$)} \\
                    x &\ge 0 &&\text{\emph{primal feasibility}} \\
              \lambda &\ge 0 &&\text{\emph{dual feasibility}} \\
         x_i \lambda_i&= 0 \quad \text{ for } i=1,\dots,n && \text{\emph{complementarity}}
 \end{align*}
-\item note both $x$ and $\lambda$ are in the feasible set
+\item note $x$ and $\lambda$ are in the same feasible set
 	$$S = \{v \in \RR^n \,:\, v\ge 0\}$$
 \end{itemize}
 \end{frame}
@@ -429,12 +416,13 @@ where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
 \end{align*}
 
     \begin{itemize}
-    \item[$\circ$] $\mu_k>0$: \quad $x_{k+1} > 0$ and $\lambda_{k+1} > 0$ \, (inequalities always inactive!)
+    \item[$\circ$] $\mu_k>0$ thus $x_{k+1} > 0$ and $\lambda_{k+1} > 0$
+    \item[$\circ$] inequalities always inactive
     \item[$\circ$] Newton method: linearize $\grad f(x)$ at current iterate $x_k$, $\lambda_k$ {\large\strut}
         \begin{itemize}
         \item[$\bullet$] user must supply Hessian $\grad^2 f(x)$
         \end{itemize}
-    \item[$\circ$] once a search direction is found, the inequality constraints determine how far to move \dots \quad we use \emph{ratio tests} on both $x$ and $\lambda$
+    \item[$\circ$] once a search direction is found, the inequality constraints determine how far to move \dots \quad apply \emph{ratio tests} to $x$ and $\lambda$
     \end{itemize}
 \end{itemize}
 \end{frame}
@@ -457,16 +445,11 @@ where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
     \end{itemize}
 \item solve $\grad \beta_\mu(x)=0$: \quad $\ds \grad f(x) - \mu_k \sum_{i=1}^n \frac{1}{x_i} e_i = 0$
 \item combine symbols: $\ds \lambda_i = \frac{\mu_k}{x_i}$
-\item get system:
+\item get same system as on previous slide:
 \begin{align*}
 \grad f(x) - \lambda &= 0 \\
        x_i \lambda_i &= \mu_k
 \end{align*}
-
-\vspace{-3mm}
-    \begin{itemize}
-    \item[$\circ$] same equations as on previous slide!
-    \end{itemize}
 \end{itemize}
 \end{frame}
 
@@ -482,8 +465,7 @@ where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
  & x \ge 0
 \end{matrix}
 \end{equation*}
-\item Lagrangian:
-    $$L(x,\tau,\lambda) = f(x) - \tau^\top (Ax-b) - \lambda^\top x$$
+\item Lagrangian: \, $L(x,\tau,\lambda) = f(x) - \tau^\top (Ax-b) - \lambda^\top x$
 \item modified KKT:
 \begin{align*}
 \grad f(x) - A^\top \tau - \lambda &= 0   &&\text{\emph{stationarity}} \\
@@ -507,7 +489,7 @@ where \,\,$\ds f(u) = \int_0^1 \tfrac{1}{2} u'(x)^2 - q(x) u(x)\,dx$
 -A x_k - A \Delta x + b &= 0 \\
 (\lambda_k)_i (x_k)_i + (x_k)_i (\Delta\lambda)_i + (\lambda_k)_i (\Delta x)_i &= \mu_k
 \end{align*}
-\item simplify and symmetrize into:
+\item simplify to smaller, symmetric system:
 \begin{align*}
 \begin{bmatrix}
 \grad^2 f(x_k) + X_k^{-1}\Lambda_k & -A^\top \\
@@ -605,7 +587,7 @@ A x_k - b
     \item[$\circ$] or download a \texttt{.zip} release from that website
     \end{itemize}
 
-\item see documentation PDF \texttt{doc.pdf} in the download
+\item download contains documentation PDF \texttt{doc.pdf} and these slides \texttt{slides.pdf}
 \end{itemize}
 \end{frame}
 
@@ -632,7 +614,7 @@ A x_k - b
     \item[$\circ$] inputs \texttt{A}, \texttt{b} are $m\times n$ and $m\times 1$
     \item[$\circ$] if \texttt{A=[]}, \texttt{b=[]} then $m=0$ and equality constraints are ignored
     \item[$\circ$] output gives last iterate: \texttt{x} $\in\RR^n$, \texttt{tau} $\in\RR^m$, \texttt{lam} $\in\RR^n$
-    \item[$\circ$] see \texttt{doc.pdf} regarding solver parameters
+    \item[$\circ$] see documentation regarding solver parameters
     \end{itemize}
 
 \item run examples using driver programs:
