@@ -17,7 +17,7 @@ function obstacle(n,rtol)
 
     % solve using a faster-shrinking barrier: theta=0.001
     theta = 0.001;
-    [uk,_,lamk,iterlist,nuklist,muklist] = popdip(u0,@obstaclefcn,[],[],rtol,1.0e-50,100,theta);
+    [uk,tauk,lamk,iterlist,nuklist,muklist] = popdip(u0,@obstaclefcn,[],[],rtol,1.0e-50,100,theta);
 
     % print run info
     N = size(iterlist,2);

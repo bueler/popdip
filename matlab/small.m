@@ -8,7 +8,7 @@ function small(x0,rtol)
     if nargin < 1,  x0 = [2; 2];  end
     if nargin < 2,  rtol = 1.0e-14;  end
 
-    [xk,_,lamk,iterlist,nuklist,muklist] = popdip(x0,@smallfcn,[],[],rtol);
+    [xk,tauk,lamk,iterlist,nuklist,muklist] = popdip(x0,@smallfcn,[],[],rtol);
 
     N = size(iterlist,2);
     x1 = iterlist(1,:);  x2 = iterlist(2,:);
