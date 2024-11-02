@@ -1,8 +1,9 @@
-function kleeminty(m,x0,rtol)
-% KLEEMINTY  Solves the m-variable version of the Klee-Minty cube problem.
-% See https://bueler.github.io/opt/assets/codes/kleeminty.m for a simplex
-% method solution of this problem.  On this example, POPDIP seems to have
-% exponentially-growing numbers of steps just like simplex.
+function kmpopdip(m,x0,rtol)
+% KMPOPDIP  Solves the m-variable version of the Klee-Minty cube problem
+% using POPDIP.  Compare
+%   https://bueler.github.io/opt/assets/codes/kleeminty.m
+% for a simplex method solution of this problem.  On this example, POPDIP
+% seems to have exponentially-growing numbers of steps just like simplex.
 
     if nargin < 1,  m = 4;  end
     if nargin < 2,  x0 = ones(m,1);  end
