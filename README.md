@@ -26,4 +26,4 @@ These LaTeX documents can be rebuilt, using `pdflatex` and `bibtex`, by doing `m
 
 ## history
 
-The first version of this project was demonstrated in my Math 661 Optimization course in Fall 2018.  (See [bueler.github.io/M661F18/](https://bueler.github.io/M661F18/index.html) and look among the Matlab/Octave codes.)  The current version 1.2 is an example4in the Fall 2022 instance of the same course; see [bueler.github.io/opt/](https://bueler.github.io/opt/).
+The first version of this project was demonstrated in my Math 661 Optimization course in Fall 2018.  (See [bueler.github.io/M661F18/](https://bueler.github.io/M661F18/index.html) and look among the Matlab/Octave codes.)  The current version 1.2 is an example in the Fall 2024 offering of the same course; see [bueler.github.io/opt/](https://bueler.github.io/opt/).
