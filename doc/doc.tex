@@ -23,7 +23,7 @@
 
 \title{POPDIP: a POsitive-variables \\ Primal-Dual Interior Point optimization method}
 \author{Ed Bueler}
-\date{Version 1.1. \today}
+\date{Version 1.2.  4 November 2024}
 
 \begin{document}
 \maketitle
@@ -37,11 +37,12 @@ The algorithm here is an example of the Newton-type primal-dual interior point a
                          & x \ge 0
 \end{matrix} \label{eq:problem}
 \end{equation}
+The algorithm here is specialized for nonnegativity constraints $x\ge 0$, and it is not suitable for general inequality constraints of the form ``$g_i(x)\ge 0$.''  Nor is it suitable for general equality constraints ``$g_i(x)=0$.''  However, it can be used as an interior-point method for linear programming (LP), that is, in the case where $f(x)=c^\top x$.  This method can therefore solve LP problems in standard form, but it has no special performance improvements for that case.
 
-This is a specialized algorithm for nonnegativity constraints $x\ge 0$, and it is not suitable for general inequality constraints of the form ``$g_i(x)\ge 0$.''  Nor is it suitable for general equality constraints ``$g_i(x)=0$.''  However, it can be used as an interior-point method for linear programming in the case where $f(x)=c^\top x$, thus \eqref{eq:problem} is in standard form, though it has no special performance improvements for that case.
+These short notes are \emph{not} research.  I simply implement a special case of a well-known algorithm.  Furthermore ``POPDIP'' is a name I made up; it is not in common use.  I have implemented this case because I am interested in interior point methods.
 
-These short notes are \emph{not} research.  I simply implement a case of a well-known algorithm.  Furthermore ``POPDIP'' is a name I made up; it is not in common use.  I am interested in the class of interior point methods because local quadratic convergence can be proven.
-\end{abstract}
+Download the code, this documentation, slides, and the examples by cloning the Github repository \href{https://github.com/bueler/popdip}{\texttt{github.com/bueler/popdip}},
+or get an archive from the same site.\end{abstract}
 
 \thispagestyle{empty}
 
@@ -55,9 +56,7 @@ First consider a nonlinear optimization problem with only nonnegativity (informa
 \text{subject to} \qquad & x \ge 0
 \end{matrix} \label{eq:posproblem}
 \end{equation}
-As usual, $x\ge 0$ in \eqref{eq:posproblem} means that each entry of $x\in\RR^n$ is nonnegative.  The feasible set for \eqref{eq:posproblem} is the convex and closed set $S = \{x\in \RR^n\,:\,x\ge 0\}$, with interior $S^\circ = \{x\in \RR^n\,:\,x > 0\}$, and $f:S \to \RR$ is assumed to be a continuous and smooth function.
-
-The next section will address the general problem \eqref{eq:problem} including linear equality constraints.
+As usual, $x\ge 0$ in \eqref{eq:posproblem} means that each entry of $x\in\RR^n$ is nonnegative.  The feasible set for \eqref{eq:posproblem} is the convex and closed set $S = \{x\in \RR^n\,:\,x\ge 0\}$, with interior $S^\circ = \{x\in \RR^n\,:\,x > 0\}$, and $f:S \to \RR$ is assumed to be a continuous and smooth function.  (The next section will address the general problem \eqref{eq:problem} including linear equality constraints.)
 
 One can derive an interior point method for \eqref{eq:posproblem} by considering a logarithmic barrier function \cite[section 16.2]{GrivaNashSofer2009}.  Let $\mu>0$ be a (temporarily) fixed constant.  If $x\in S^\circ$ then the following function is well-defined:
 \begin{equation}
@@ -81,13 +80,13 @@ so that $\lambda\in\RR^n$.  Note that $\lambda>0$ if and only if $x>0$ because $
 x &\ge 0 \notag \\
 \lambda &\ge 0 \notag
 \end{align}
-Because of the second condition in system \eqref{eq:posfirstordersystem}, based on a constant $\mu>0$, both $x$ and $\lambda$ are strictly positive and thus in the interior $S^\circ$.  (By contrast, in the general problem \eqref{eq:problem} the interior of the feasible set for the primal variables $x$ is different from $S^\circ$.)
+Because of the second condition in system \eqref{eq:posfirstordersystem}, both $x$ and $\lambda$ are strictly positive and thus in the interior $S^\circ$.
 
 The first condition in system \eqref{eq:posfirstordersystem} can be rewritten as $\grad_x \mathcal{L}(x,\lambda)=0$ using this Lagrangian function for problem \eqref{eq:posproblem}:
 \begin{equation}
 \mathcal{L}(x,\lambda) = f(x) - \sum_{i=1}^n \lambda_i x_i.  \label{eq:poslagrangian}
 \end{equation}
-The first-order KKT conditions \cite[sections 14.4, 14.5]{GrivaNashSofer2009} of \eqref{eq:posproblem}, which one can derive using Lagrangian \eqref{eq:poslagrangian}, are nearly the same as \eqref{eq:posfirstordersystem} but with the second equation replaced by complementarity,
+The first-order KKT conditions \cite[sections 14.4, 14.5]{GrivaNashSofer2009} of problem \eqref{eq:posproblem}, which one can derive using Lagrangian \eqref{eq:poslagrangian}, are nearly the same as the condition in \eqref{eq:posfirstordersystem} but with the second equation replaced by complementarity,
 \begin{align}
 \grad f(x) - \lambda &= 0 \label{eq:poskkt} \\
 \lambda_i x_i &= 0, \qquad i=1,\dots,n \notag \\
@@ -95,9 +94,9 @@ x &\ge 0 \notag \\
 \lambda &\ge 0 \notag
 \end{align}
 
-Now we see that, though a logarithmic barrier method generated system \eqref{eq:posfirstordersystem}, the system can also be derived by modifying KKT conditions \eqref{eq:poskkt}.  The modification changes the complementary slackness condition into a nonzero connection between the primal and dual variables.  (Their product is set to a positive constant.)  System \eqref{eq:posfirstordersystem} describes a primal and dual $(x,\lambda)$ solution which is interior to the feasible set, and different from the solution to \eqref{eq:poskkt}.
+Now we see that, though a logarithmic barrier method generated system \eqref{eq:posfirstordersystem}, the system can also be derived by a modification of KKT conditions \eqref{eq:poskkt}.  The modification changes the complementarity condition into a nonzero connection between the primal and dual variables.  (Their product is set to a positive constant.)  System \eqref{eq:posfirstordersystem} describes a primal and dual $(x,\lambda)$ solution which is interior to the feasible set, and thus different from the solution to \eqref{eq:poskkt}, but the former approximates the latter if $\mu>0$ is small.
 
-The first condition in \eqref{eq:poskkt} allows $\lambda$ to be eliminated if desired: $\lambda = \grad f(x)$.  Writing the KKT conditions without these dual variables gives a \emph{nonlinear complementarity problem} (NCP) \cite{FacchineiPang2007},
+The first condition in \eqref{eq:poskkt} allows $\lambda$ to be eliminated if desired: $\lambda = \grad f(x)$.  Writing the KKT conditions \eqref{eq:poskkt} without these dual variables gives a \emph{nonlinear complementarity problem} (NCP) \cite{FacchineiPang2007},
 \begin{equation}
 x \ge 0, \qquad \grad f(x) \ge 0, \qquad x_i (\grad f(x))_i = 0.  \label{eq:posncp}
 \end{equation}
@@ -105,7 +104,7 @@ Thus we may regard POPDIP as solving the $\mu$-modified NCP
 \begin{equation}
 x \ge 0, \qquad \grad f(x) \ge 0, \qquad x_i (\grad f(x))_i = \mu. \label{eq:mumodifiedncp}
 \end{equation}
-However, POPDIP can achieve quadratic convergence substantially because it updates primal and dual variables separately.  Stating the algorithm or the original KKT conditions as an NCP, thereby suppressing the dual variables, is not beneficial to solver performance.  On the other hand, such NCP formulations also appear in problems which are not optimizations, rather variational inequalities, and I am focussed these days on glaciological variational inequalities \cite{Bueler2016}.
+However, POPDIP can achieve quadratic convergence substantially because it updates primal and dual variables separately.  Stating the algorithm or the original KKT conditions as an NCP, thereby suppressing the dual variables, is not beneficial to solver performance.  On the other hand, such NCP formulations also appear in problems which are not optimizations, rather variational inequalities, and I am focussed these days on glaciological variational inequalities \cite{Bueler2016,BuelerFarrell2024}, for example.
 
 
 \subsection*{General problem}
